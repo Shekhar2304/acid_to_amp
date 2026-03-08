@@ -216,8 +216,17 @@ class ContactMessage(db.Model):
         return result
 @staticmethod
 def mark_all_read():
-    count = ContactMessage.query.filter_by(status="unread").update({"status": "read"})
+
+    messages = ContactMessage.query.filter_by(status='unread').all()
+
+    count = 0
+
+    for msg in messages:
+        msg.status = "read"
+        count += 1
+
     db.session.commit()
+
     return count
 @staticmethod
 def mark_as_read(message_id):
@@ -228,6 +237,7 @@ def mark_as_read(message_id):
         return False
 
     msg.status = "read"
+
     db.session.commit()
 
     return True
@@ -240,6 +250,7 @@ def delete_message(message_id):
         return False
 
     db.session.delete(msg)
+
     db.session.commit()
 
     return True
