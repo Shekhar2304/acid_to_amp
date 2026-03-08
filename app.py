@@ -5,7 +5,7 @@ import sqlite3
 from functools import wraps
 from datetime import datetime, timedelta
 import random
-import os
+ 
 from dotenv import load_dotenv
 import pytz
 import csv
@@ -13,6 +13,9 @@ import io
 import json
 import pandas as pd
 import logging
+import os
+os.environ['PANDAS_BUILD_STRATEGY'] = 'minimal'
+
 
 # CRITICAL: Load env FIRST
 load_dotenv()
