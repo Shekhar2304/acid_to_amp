@@ -219,7 +219,30 @@ def mark_all_read():
     count = ContactMessage.query.filter_by(status="unread").update({"status": "read"})
     db.session.commit()
     return count
+@staticmethod
+def mark_as_read(message_id):
 
+    msg = ContactMessage.query.get(int(message_id))
+
+    if not msg:
+        return False
+
+    msg.status = "read"
+    db.session.commit()
+
+    return True
+@staticmethod
+def delete_message(message_id):
+
+    msg = ContactMessage.query.get(int(message_id))
+
+    if not msg:
+        return False
+
+    db.session.delete(msg)
+    db.session.commit()
+
+    return True
 # =========================================================
 # SENSOR DATA MODEL
 # =========================================================
