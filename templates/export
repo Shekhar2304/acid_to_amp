@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Export Options - Acid-to-Amp{% endblock %}
+
+{% block content %}
+<div class="admin-cosmic">
+    <div class="admin-header">
+        <h1 class="admin-title">
+            <i class="fas fa-file-export me-3"></i>Export Data
+        </h1>
+        <p class="text-secondary">Choose export format and options</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="stat-card-cosmic" onclick="exportData('csv')" style="cursor: pointer;">
+                <div class="text-center py-4">
+                    <i class="fas fa-file-csv fa-4x mb-3" style="color: #8b5cf6;"></i>
+                    <h3 class="text-white">CSV Export</h3>
+                    <p class="text-secondary">Export as comma-separated values</p>
+                    <button class="btn-cosmic-success mt-3" onclick="exportData('csv')">
+                        <i class="fas fa-download me-2"></i>Download CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="stat-card-cosmic" onclick="exportData('excel')" style="cursor: pointer;">
+                <div class="text-center py-4">
+                    <i class="fas fa-file-excel fa-4x mb-3" style="color: #10b981;"></i>
+                    <h3 class="text-white">Excel Export</h3>
+                    <p class="text-secondary">Export as Excel spreadsheet</p>
+                    <button class="btn-cosmic-success mt-3" onclick="exportData('excel')">
+                        <i class="fas fa-download me-2"></i>Download Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="stat-card-cosmic" onclick="exportData('json')" style="cursor: pointer;">
+                <div class="text-center py-4">
+                    <i class="fas fa-file-code fa-4x mb-3" style="color: #ec4899;"></i>
+                    <h3 class="text-white">JSON Export</h3>
+                    <p class="text-secondary">Export as JSON format</p>
+                    <button class="btn-cosmic-success mt-3" onclick="exportData('json')">
+                        <i class="fas fa-download me-2"></i>Download JSON
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="quick-actions-card mt-4">
+        <h5 class="mb-3" style="color: #8b5cf6;">Export Information</h5>
+        <ul class="text-secondary">
+            <li>📊 Exports include last 10,000 sensor readings</li>
+            <li>🕐 Timestamps are in local timezone ({{ timezone }})</li>
+            <li>📁 Files are named with export timestamp</li>
+            <li>💾 All data is exported in UTF-8 format</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+function exportData(format) {
+    window.location.href = `/admin/export_report?format=${format}`;
+}
+
+// Show notification when export starts
+document.querySelectorAll('.stat-card-cosmic').forEach(card => {
+    card.addEventListener('click', function() {
+        showNotification('Export started...', 'info');
+    });
+});
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.style.position = 'fixed';
+    notification.style.top = '20px';
+    notification.style.right = '20px';
+    notification.style.zIndex = '9999';
+    notification.style.padding = '1rem 2rem';
+    notification.style.borderRadius = '30px';
+    notification.style.background = type === 'success' ? 'rgba(16, 185, 129, 0.9)' : 
+                                 type === 'error' ? 'rgba(239, 68, 68, 0.9)' : 
+                                 'rgba(59, 130, 246, 0.9)';
+    notification.style.color = '#fff';
+    notification.style.fontWeight = '500';
+    notification.style.backdropFilter = 'blur(10px)';
+    notification.style.boxShadow = '0 20px 40px -15px #000';
+    notification.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'} me-2"></i>${message}`;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-in';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+</script>
+
+<style>
+@keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100px); opacity: 0; }
+}
+</style>
+{% endblock %}

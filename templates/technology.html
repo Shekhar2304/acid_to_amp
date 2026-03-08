@@ -1,0 +1,764 @@
+{% extends "base.html" %}
+
+{% block title %}Technology - Acid-to-Amp Bioelectric Intelligence{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --bg-primary: #0a0a0f;
+        --bg-secondary: #111127;
+        --bg-card: #151530;
+        --purple-primary: #8b5cf6;
+        --purple-glow: #a78bfa;
+        --blue-accent: #3b82f6;
+        --blue-glow: #60a5fa;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --border-glow: rgba(139, 92, 246, 0.3);
+        --glass-bg: rgba(21, 21, 48, 0.7);
+    }
+
+    .tech-header {
+        background: linear-gradient(145deg, var(--bg-card), var(--glass-bg));
+        border: 1px solid var(--border-glow);
+        border-radius: 30px;
+        padding: 2.5rem 3rem;
+        margin-bottom: 2.5rem;
+        box-shadow: 
+            0 25px 50px -20px rgba(0, 0, 0, 0.9),
+            0 0 0 1px rgba(139, 92, 246, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        position: relative;
+        overflow: hidden;
+        animation: headerGlow 4s infinite alternate;
+        backdrop-filter: blur(20px);
+    }
+
+    .tech-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: 
+            radial-gradient(circle at 20% 80%, var(--purple-primary) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, var(--blue-accent) 0%, transparent 50%);
+        opacity: 0.1;
+        animation: rotate 20s linear infinite;
+    }
+
+    .tech-title {
+        font-size: 2.8rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--text-primary), var(--purple-glow), var(--blue-glow));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 0 30px rgba(139, 92, 246, 0.5);
+    }
+
+    .tech-subtitle {
+        color: var(--text-secondary);
+        font-size: 1.2rem;
+        max-width: 700px;
+        backdrop-filter: blur(10px);
+    }
+
+    .tech-card {
+        background: linear-gradient(145deg, var(--bg-card), var(--glass-bg));
+        border: 1px solid var(--border-glow);
+        border-radius: 30px;
+        padding: 2rem;
+        height: 100%;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+        animation: cardFloat 3s infinite alternate;
+        backdrop-filter: blur(15px);
+    }
+
+    .tech-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, 
+            rgba(139, 92, 246, 0.03) 0%,
+            rgba(59, 130, 246, 0.03) 50%,
+            rgba(139, 92, 246, 0.03) 100%);
+        z-index: 0;
+    }
+
+    .tech-card > * {
+        position: relative;
+        z-index: 1;
+    }
+
+    .tech-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+            transparent, 
+            rgba(139, 92, 246, 0.1), 
+            rgba(59, 130, 246, 0.1),
+            transparent);
+        transition: left 0.7s;
+        z-index: 0;
+    }
+
+    .tech-card:hover::after {
+        left: 100%;
+    }
+
+    .tech-card:hover {
+        transform: translateY(-12px) scale(1.02);
+        border-color: var(--purple-primary);
+        box-shadow: 
+            0 35px 60px -20px rgba(139, 92, 246, 0.4),
+            0 0 0 1px var(--purple-primary),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .tech-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(145deg, 
+            rgba(139, 92, 246, 0.15), 
+            rgba(59, 130, 246, 0.1));
+        border: 1px solid var(--border-glow);
+        border-radius: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        box-shadow: 
+            0 15px 30px -10px rgba(139, 92, 246, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        position: relative;
+    }
+
+    .tech-icon::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        background: linear-gradient(45deg, var(--purple-primary), var(--blue-accent));
+        border-radius: 25px;
+        z-index: -1;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .tech-icon:hover::before {
+        opacity: 0.3;
+    }
+
+    .tech-icon i {
+        font-size: 3rem;
+        background: linear-gradient(135deg, var(--purple-primary), var(--blue-glow));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.6));
+        z-index: 2;
+    }
+
+    .tech-card h3 {
+        color: var(--text-primary);
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        background: linear-gradient(90deg, var(--text-primary), var(--purple-glow));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        position: relative;
+    }
+
+    .tech-card h3::after {
+        content: '';
+        position: absolute;
+        bottom: -5px;
+        left: 0;
+        width: 40px;
+        height: 2px;
+        background: linear-gradient(90deg, var(--purple-primary), var(--blue-accent));
+        border-radius: 1px;
+    }
+
+    .tech-card p {
+        color: var(--text-secondary);
+        line-height: 1.7;
+        margin-bottom: 1.2rem;
+        backdrop-filter: blur(5px);
+    }
+
+    .tech-badge {
+        background: rgba(139, 92, 246, 0.15);
+        border: 1px solid rgba(139, 92, 246, 0.4);
+        color: var(--purple-glow);
+        padding: 0.4rem 1.2rem;
+        border-radius: 25px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .tech-badge::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(45deg, var(--purple-primary), var(--blue-accent));
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .tech-badge:hover::before {
+        opacity: 0.15;
+    }
+
+    .tech-badge:hover {
+        background: rgba(139, 92, 246, 0.25);
+        border-color: var(--purple-primary);
+        color: var(--text-primary);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3);
+    }
+
+    .spec-list {
+        list-style: none;
+        padding: 0;
+        margin-top: 1.5rem;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 20px;
+        padding: 1.5rem;
+        backdrop-filter: blur(10px);
+    }
+
+    .spec-list li {
+        padding: 1rem 0;
+        border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .spec-list li::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 3px;
+        height: 0;
+        background: linear-gradient(180deg, var(--purple-primary), var(--blue-accent));
+        transition: height 0.3s ease;
+    }
+
+    .spec-list li:hover::before {
+        height: 100%;
+    }
+
+    .spec-list li:hover {
+        padding-left: 1rem;
+        border-bottom-color: var(--purple-primary);
+        background: rgba(139, 92, 246, 0.05);
+        border-radius: 10px;
+        margin: 0 -0.5rem;
+        padding: 1rem 0.5rem;
+    }
+
+    .spec-list .spec-label {
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    .spec-list .spec-value {
+        color: var(--text-primary);
+        font-family: 'JetBrains Mono', 'Fira Code', monospace;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-shadow: 0 0 10px var(--purple-primary);
+    }
+
+    .architecture-flow {
+        background: linear-gradient(145deg, var(--bg-secondary), var(--glass-bg));
+        border: 1px solid var(--border-glow);
+        border-radius: 50px;
+        padding: 3rem;
+        margin-top: 3rem;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(25px);
+    }
+
+    .architecture-flow::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: 
+            radial-gradient(ellipse at top, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+            radial-gradient(ellipse at bottom, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+        pointer-events: none;
+    }
+
+    .flow-step {
+        text-align: center;
+        padding: 1.5rem;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 20px;
+        border: 1px solid rgba(139, 92, 246, 0.2);
+        backdrop-filter: blur(15px);
+    }
+
+    .flow-step:hover {
+        transform: translateY(-10px) scale(1.1);
+        border-color: var(--purple-primary);
+        box-shadow: 0 20px 40px rgba(139, 92, 246, 0.3);
+    }
+
+    .flow-step i {
+        font-size: 3rem;
+        background: linear-gradient(135deg, var(--purple-primary), var(--blue-accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.7));
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    .flow-step p {
+        color: var(--text-primary);
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin: 0;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+    }
+
+    .flow-arrow {
+        font-size: 2.5rem;
+        background: linear-gradient(135deg, var(--purple-primary), var(--blue-accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.5));
+        opacity: 0.9;
+        transition: all 0.3s;
+    }
+
+    .flow-arrow:hover {
+        filter: drop-shadow(0 0 25px var(--purple-primary));
+        transform: scale(1.2);
+    }
+
+    .stats-row {
+        margin-top: 4rem;
+    }
+
+    .stat-bubble {
+        background: linear-gradient(145deg, 
+            rgba(139, 92, 246, 0.15), 
+            rgba(59, 130, 246, 0.1));
+        border: 1px solid var(--border-glow);
+        border-radius: 40px;
+        padding: 1.5rem 2rem;
+        text-align: center;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        backdrop-filter: blur(20px);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-bubble::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(45deg, 
+            rgba(139, 92, 246, 0.1) 0%,
+            rgba(59, 130, 246, 0.1) 50%,
+            rgba(139, 92, 246, 0.1) 100%);
+        z-index: -1;
+    }
+
+    .stat-bubble:hover {
+        border-color: var(--purple-primary);
+        box-shadow: 
+            0 20px 40px -15px rgba(139, 92, 246, 0.4),
+            0 0 0 1px var(--purple-primary);
+        transform: translateY(-10px) scale(1.05);
+    }
+
+    .stat-bubble .stat-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        font-family: 'JetBrains Mono', 'Fira Code', monospace;
+        background: linear-gradient(135deg, var(--text-primary), var(--purple-glow), var(--blue-glow));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-bubble .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+    }
+
+    .cta-button {
+        background: linear-gradient(145deg, var(--purple-primary), var(--blue-accent));
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: var(--text-primary);
+        padding: 1.2rem 3rem;
+        border-radius: 60px;
+        font-weight: 700;
+        font-size: 1.15rem;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        display: inline-block;
+        text-decoration: none;
+        box-shadow: 
+            0 20px 40px -15px rgba(139, 92, 246, 0.5),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(20px);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-button::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(45deg, 
+            rgba(255, 255, 255, 0.2) 0%,
+            transparent 50%,
+            rgba(255, 255, 255, 0.1) 100%);
+        transform: translateX(-100%);
+        transition: transform 0.6s;
+    }
+
+    .cta-button:hover::before {
+        transform: translateX(100%);
+    }
+
+    .cta-button:hover {
+        transform: translateY(-5px);
+        box-shadow: 
+            0 30px 60px -20px rgba(139, 92, 246, 0.6),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        background: linear-gradient(145deg, var(--purple-glow), var(--blue-glow));
+        color: var(--text-primary);
+    }
+
+    /* Animations */
+    @keyframes headerGlow {
+        0% { box-shadow: 0 25px 50px -20px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(139, 92, 246, 0.2); }
+        100% { box-shadow: 0 25px 50px -20px rgba(139, 92, 246, 0.3), 0 0 0 1px rgba(139, 92, 246, 0.4); }
+    }
+
+    @keyframes rotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    @keyframes cardFloat {
+        0% { transform: translateY(0px); }
+        100% { transform: translateY(-5px); }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .tech-title { 
+            font-size: 2.2rem; 
+        }
+        
+        .tech-header {
+            padding: 2rem 1.5rem;
+            border-radius: 20px;
+        }
+        
+        .flow-arrow { 
+            transform: rotate(90deg); 
+            margin: 1.5rem 0; 
+        }
+        
+        .architecture-flow {
+            padding: 2rem 1.5rem;
+            border-radius: 30px;
+        }
+        
+        .tech-card {
+            margin-bottom: 1.5rem;
+        }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--bg-secondary);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(var(--purple-primary), var(--blue-accent));
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--purple-glow);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4" style="position: relative; z-index: 10; background: var(--bg-primary); min-height: 100vh;">
+    <!-- Header with enhanced stats -->
+    <div class="tech-header">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="tech-title">
+                    <i class="fas fa-microchip me-3"></i>
+                    Our Technology
+                </h1>
+                <p class="tech-subtitle">
+                    Cutting‑edge Microbial Fuel Cell system with IoT integration for remote mining site remediation.
+                </p>
+            </div>
+            <div class="col-lg-4">
+                <div class="d-flex gap-3 justify-content-lg-end mt-3 mt-lg-0">
+                    <div class="stat-bubble p-3 flex-grow-1 flex-grow-0">
+                        <div class="stat-number">99.8%</div>
+                        <div class="stat-label">Uptime</div>
+                    </div>
+                    <div class="stat-bubble p-3 flex-grow-1 flex-grow-0">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Monitoring</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Components Grid (enhanced) -->
+    <div class="row g-4 mb-5">
+        <!-- MFC Chamber -->
+        <div class="col-lg-4 col-md-6">
+            <div class="tech-card">
+                <div class="tech-icon">
+                    <i class="fas fa-biohazard"></i>
+                </div>
+                <h3>MFC Chamber</h3>
+                <p>Dual‑chamber microbial fuel cell with proton exchange membrane. Houses exoelectrogenic biofilms (Shewanella oneidensis, Geobacter sulfurreducens).</p>
+                <div>
+                    <span class="tech-badge">Electroactive Biofilm</span>
+                    <span class="tech-badge">PEM</span>
+                </div>
+                <ul class="spec-list">
+                    <li><span class="spec-label">Volume</span><span class="spec-value">2.5 L</span></li>
+                    <li><span class="spec-label">Electrode Area</span><span class="spec-value">200 cm²</span></li>
+                    <li><span class="spec-label">Material</span><span class="spec-value">Carbon Cloth</span></li>
+                    <li><span class="spec-label">Max Power</span><span class="spec-value">1.2 W</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ESP32 Controller -->
+        <div class="col-lg-4 col-md-6">
+            <div class="tech-card">
+                <div class="tech-icon">
+                    <i class="fas fa-microchip"></i>
+                </div>
+                <h3>ESP32 Controller</h3>
+                <p>Dual‑core microcontroller with Wi‑Fi/Bluetooth. Reads sensors, processes data, and sends to cloud/LoRa gateway.</p>
+                <div>
+                    <span class="tech-badge">Real‑time</span>
+                    <span class="tech-badge">Low Power</span>
+                </div>
+                <ul class="spec-list">
+                    <li><span class="spec-label">CPU</span><span class="spec-value">240 MHz</span></li>
+                    <li><span class="spec-label">RAM</span><span class="spec-value">520 KB</span></li>
+                    <li><span class="spec-label">ADC</span><span class="spec-value">12‑bit</span></li>
+                    <li><span class="spec-label">Connectivity</span><span class="spec-value">Wi‑Fi, BLE</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- LoRaWAN Gateway -->
+        <div class="col-lg-4 col-md-6">
+            <div class="tech-card">
+                <div class="tech-icon">
+                    <i class="fas fa-satellite-dish"></i>
+                </div>
+                <h3>LoRaWAN Gateway</h3>
+                <p>Long‑range, low‑power communication for remote mining sites. Connects sensor nodes to the cloud.</p>
+                <div>
+                    <span class="tech-badge">8‑channel</span>
+                    <span class="tech-badge">Class A/C</span>
+                </div>
+                <ul class="spec-list">
+                    <li><span class="spec-label">Frequency</span><span class="spec-value">868/915 MHz</span></li>
+                    <li><span class="spec-label">Range</span><span class="spec-value">Up to 15 km</span></li>
+                    <li><span class="spec-label">Protocol</span><span class="spec-value">LoRaWAN 1.0.4</span></li>
+                    <li><span class="spec-label">Backhaul</span><span class="spec-value">Ethernet/4G</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Water Quality Sensors -->
+        <div class="col-lg-4 col-md-6">
+            <div class="tech-card">
+                <div class="tech-icon">
+                    <i class="fas fa-tint"></i>
+                </div>
+                <h3>Water Quality Sensors</h3>
+                <p>Multi‑parameter probe measuring pH, ORP, conductivity, dissolved oxygen, and temperature.</p>
+                <div>
+                    <span class="tech-badge">RS‑485 Modbus</span>
+                    <span class="tech-badge">IP68</span>
+                </div>
+                <ul class="spec-list">
+                    <li><span class="spec-label">pH Range</span><span class="spec-value">0‑14</span></li>
+                    <li><span class="spec-label">ORP</span><span class="spec-value">±2000 mV</span></li>
+                    <li><span class="spec-label">DO</span><span class="spec-value">0‑20 mg/L</span></li>
+                    <li><span class="spec-label">Accuracy</span><span class="spec-value">±0.1 pH</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Energy Harvesting -->
+        <div class="col-lg-4 col-md-6">
+            <div class="tech-card">
+                <div class="tech-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h3>Energy Harvesting</h3>
+                <p>Boost converter and power management unit to harvest energy from MFC and power sensors/transmission.</p>
+                <div>
+                    <span class="tech-badge">MPPT</span>
+                    <span class="tech-badge">Ultra‑low start</span>
+                </div>
+                <ul class="spec-list">
+                    <li><span class="spec-label">Input Range</span><span class="spec-value">0.3‑0.8 V</span></li>
+                    <li><span class="spec-label">Output</span><span class="spec-value">3.3 V / 5 V</span></li>
+                    <li><span class="spec-label">Efficiency</span><span class="spec-value">up to 85%</span></li>
+                    <li><span class="spec-label">Max Current</span><span class="spec-value">500 mA</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Cloud Dashboard -->
+        <div class="col-lg-4 col-md-6">
+            <div class="tech-card">
+                <div class="tech-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <h3>Cloud Dashboard</h3>
+                <p>Real‑time data visualization, alerts, and remote control via Flask web application with Socket.IO updates.</p>
+                <div>
+                    <span class="tech-badge">Flask</span>
+                    <span class="tech-badge">MongoDB</span>
+                    <span class="tech-badge">Chart.js</span>
+                </div>
+                <ul class="spec-list">
+                    <li><span class="spec-label">Update Rate</span><span class="spec-value">10 sec</span></li>
+                    <li><span class="spec-label">Data Storage</span><span class="spec-value">MongoDB</span></li>
+                    <li><span class="spec-label">Visualization</span><span class="spec-value">Chart.js</span></li>
+                    <li><span class="spec-label">Alerts</span><span class="spec-value">Email/SMS</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced System Architecture Flow -->
+    <div class="architecture-flow">
+        <h3 class="text-center mb-5" style="color: var(--text-primary); font-weight: 700; font-size: 1.8rem;">
+            <i class="fas fa-project-diagram me-2"></i>
+            Data Flow Architecture
+        </h3>
+        <div class="d-flex flex-wrap justify-content-center align-items-center gap-4">
+            <div class="flow-step">
+                <i class="fas fa-biohazard"></i>
+                <p>MFC Stack</p>
+            </div>
+            <i class="fas fa-arrow-right flow-arrow d-none d-md-block"></i>
+            <div class="flow-step">
+                <i class="fas fa-microchip"></i>
+                <p>ESP32</p>
+            </div>
+            <i class="fas fa-arrow-right flow-arrow d-none d-md-block"></i>
+            <div class="flow-step">
+                <i class="fas fa-satellite-dish"></i>
+                <p>LoRaWAN</p>
+            </div>
+            <i class="fas fa-arrow-right flow-arrow d-none d-md-block"></i>
+            <div class="flow-step">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Cloud</p>
+            </div>
+            <i class="fas fa-arrow-right flow-arrow d-none d-md-block"></i>
+            <div class="flow-step">
+                <i class="fas fa-tachometer-alt"></i>
+                <p>Dashboard</p>
+            </div>
+        </div>
+        <p class="text-secondary text-center mt-4 small" style="color: var(--text-secondary);">
+            <i class="fas fa-lock me-2"></i>
+            End‑to‑end encryption · 10‑second updates · 99.8% uptime
+        </p>
+    </div>
+
+    <!-- Key Features / Stats Row -->
+    <div class="row stats-row g-4">
+        <div class="col-md-3 col-6">
+            <div class="stat-bubble h-100">
+                <div class="stat-number">15k+</div>
+                <div class="stat-label">Hours Operational</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-bubble h-100">
+                <div class="stat-number">1.2M</div>
+                <div class="stat-label">Data Points</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-bubble h-100">
+                <div class="stat-number">82%</div>
+                <div class="stat-label">Metal Reduction</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-bubble h-100">
+                <div class="stat-number">48</div>
+                <div class="stat-label">Sites Monitored</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="text-center mt-5">
+        <a href="{{ url_for('contact') }}" class="cta-button">
+            <i class="fas fa-paper-plane me-2"></i>Request Technical Details
+        </a>
+    </div>
+</div>
+{% endblock %}

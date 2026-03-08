@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Acid-to-Amp Bioelectric Intelligence</title>
+    
+    <!-- Google Fonts & Bootstrap -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        /* ===== COSMIC ADMIN THEME (Dark Purple/Blue) ===== */
+        :root {
+            --glow-purple: #b77aff;
+            --glow-blue: #6a8cff;
+            --glow-cyan: #44e0c0;
+            --glow-pink: #ff7ad0;
+            --dark-bg: #030014;
+            --card-bg: #0b0720;
+            --border-glow: rgba(183, 122, 255, 0.3);
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0d0;
+            --accent-purple: #8b5cf6;
+            --accent-blue: #3b82f6;
+            --navbar-bg: rgba(10, 5, 30, 0.95);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background grid */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+            animation: gridMove 20s linear infinite;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 70% 30%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 30% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 45%);
+            filter: blur(40px);
+            pointer-events: none;
+            z-index: 0;
+            animation: nebulaDrift 30s infinite alternate ease-in-out;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(20px, 20px); }
+        }
+
+        @keyframes nebulaDrift {
+            0% { transform: scale(1) translate(0, 0); opacity: 0.5; }
+            100% { transform: scale(1.2) translate(2%, 2%); opacity: 0.8; }
+        }
+
+        /* Floating particles */
+        .particle {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: rgba(139, 92, 246, 0.3);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            animation: float 15s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); opacity: 0.3; }
+            25% { transform: translate(100px, -100px); opacity: 0.6; }
+            50% { transform: translate(200px, 0); opacity: 0.3; }
+            75% { transform: translate(100px, 100px); opacity: 0.6; }
+        }
+
+        /* ---------- Navbar ---------- */
+        .cosmic-navbar {
+            background: var(--navbar-bg);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-glow);
+            padding: 0.8rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.6rem;
+            background: linear-gradient(135deg, #a78bfa, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-link {
+            color: var(--text-secondary) !important;
+            font-weight: 500;
+            margin: 0 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: #c084fc !important;
+            text-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+        }
+
+        .health-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 40px;
+            padding: 6px 16px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .pulse-dot {
+            width: 10px;
+            height: 10px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(74,222,128,0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(74,222,128,0); }
+            100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); }
+        }
+
+        /* ---------- Main container ---------- */
+        .admin-cosmic {
+            position: relative;
+            z-index: 10;
+            padding: 2rem 1.5rem;
+            margin-top: 70px;
+        }
+
+        /* Header */
+        .admin-header {
+            background: var(--card-bg);
+            border: 1px solid var(--border-glow);
+            border-radius: 30px;
+            padding: 2rem 2.5rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.8);
+            position: relative;
+            overflow: hidden;
+            animation: headerGlow 4s infinite alternate;
+        }
+
+        .admin-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes headerGlow {
+            0%, 100% { border-color: rgba(139, 92, 246, 0.3); }
+            50% { border-color: rgba(139, 92, 246, 0.8); }
+        }
+
+        .admin-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, #b794ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: titleGlow 3s infinite alternate;
+        }
+
+        @keyframes titleGlow {
+            0% { text-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
+            100% { text-shadow: 0 0 40px rgba(139, 92, 246, 0.8); }
+        }
+
+        /* Stats Cards */
+        .stat-card-cosmic {
+            background: var(--card-bg);
+            border: 1px solid var(--border-glow);
+            border-radius: 24px;
+            padding: 1.5rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            animation: cardFloat 3s infinite alternate;
+        }
+
+        .stat-card-cosmic::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .stat-card-cosmic:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: #8b5cf6;
+            box-shadow: 0 25px 45px -15px #8b5cf6;
+        }
+
+        .stat-card-cosmic:hover::before {
+            opacity: 0.5;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+            animation: valueGlow 2s infinite alternate;
+        }
+
+        @keyframes valueGlow {
+            0% { text-shadow: 0 0 10px rgba(139, 92, 246, 0.3); }
+            100% { text-shadow: 0 0 20px rgba(139, 92, 246, 0.8); }
+        }
+
+        /* Tabs */
+        .admin-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+            padding-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-secondary);
+            padding: 0.7rem 2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .tab-btn:hover {
+            border-color: rgba(139, 92, 246, 0.4);
+            color: #fff;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(145deg, #8b5cf6, #6d3fd1);
+            color: #fff;
+            box-shadow: 0 10px 20px -10px #8b5cf6;
+        }
+
+        /* Primary card */
+        .card-cosmic {
+            background: var(--card-bg);
+            border: 1px solid var(--border-glow);
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.9);
+            animation: cardGlow 4s infinite alternate;
+        }
+
+        @keyframes cardGlow {
+            0% { border-color: rgba(139, 92, 246, 0.3); }
+            100% { border-color: rgba(139, 92, 246, 0.8); }
+        }
+
+        .card-header-cosmic {
+            background: rgba(139, 92, 246, 0.1);
+            border-bottom: 1px solid var(--border-glow);
+            padding: 1.5rem 2rem;
+        }
+
+        .card-header-cosmic h6 {
+            color: #8b5cf6;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            animation: headerTextGlow 2s infinite alternate;
+        }
+
+        @keyframes headerTextGlow {
+            0% { text-shadow: 0 0 10px rgba(139, 92, 246, 0.3); }
+            100% { text-shadow: 0 0 20px rgba(139, 92, 246, 0.8); }
+        }
+
+        /* Table */
+        .table-cosmic {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+        }
+
+        .table-cosmic thead th {
+            color: #8b5cf6;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 1rem 1.5rem;
+            background: rgba(139, 92, 246, 0.08);
+            border: none;
+            white-space: nowrap;
+        }
+
+        .table-cosmic tbody tr {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+            animation: rowFadeIn 0.5s ease-out;
+        }
+
+        @keyframes rowFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .table-cosmic tbody tr:hover {
+            background: rgba(139, 92, 246, 0.15);
+            transform: scale(1.01);
+            box-shadow: 0 15px 30px -15px #8b5cf6;
+        }
+
+        .table-cosmic tbody td {
+            padding: 1.2rem 1.5rem;
+            color: var(--text-primary);
+            font-weight: 500;
+            border: none;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        /* Badges */
+        .badge-cosmic {
+            padding: 0.4rem 1rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+        }
+
+        .badge-cosmic.admin {
+            background: linear-gradient(145deg, #8b5cf6, #6d3fd1);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+            animation: adminGlow 2s infinite alternate;
+        }
+
+        .badge-cosmic.user {
+            background: linear-gradient(145deg, #3b82f6, #2563eb);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+
+        .badge-cosmic.unread {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid #ef4444;
+            color: #f87171;
+        }
+
+        .badge-cosmic.read {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid #10b981;
+            color: #34d399;
+        }
+
+        @keyframes adminGlow {
+            0% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.5); }
+            100% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.8); }
+        }
+
+        .badge-self {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            padding: 0.3rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Buttons */
+        .btn-cosmic {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: #fff;
+            padding: 0.5rem 1.2rem;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .btn-cosmic::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-cosmic:hover::before {
+            left: 100%;
+        }
+
+        .btn-cosmic:hover {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: #8b5cf6;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -10px #8b5cf6;
+        }
+
+        .btn-cosmic-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+            cursor: pointer;
+        }
+
+        .btn-cosmic-danger:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+            box-shadow: 0 10px 20px -10px #ef4444;
+        }
+
+        .btn-cosmic-success {
+            background: linear-gradient(145deg, #10b981, #059669);
+            border: none;
+            color: #fff;
+            padding: 0.7rem 1.5rem;
+            font-weight: 600;
+            animation: successGlow 2s infinite alternate;
+            cursor: pointer;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        @keyframes successGlow {
+            0% { box-shadow: 0 10px 20px -10px #10b981; }
+            100% { box-shadow: 0 15px 30px -5px #34d399; }
+        }
+
+        .btn-cosmic-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 30px -10px #10b981;
+        }
+
+        /* Quick actions card */
+        .quick-actions-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-glow);
+            border-radius: 30px;
+            padding: 2rem;
+            animation: quickActionsGlow 4s infinite alternate;
+        }
+
+        @keyframes quickActionsGlow {
+            0% { border-color: rgba(139, 92, 246, 0.3); }
+            100% { border-color: rgba(139, 92, 246, 0.8); }
+        }
+
+        /* Modals */
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border-glow);
+            border-radius: 30px;
+            box-shadow: 0 50px 70px -30px #000;
+        }
+
+        .modal-header {
+            background: rgba(139, 92, 246, 0.1);
+            border-bottom: 1px solid var(--border-glow);
+            padding: 1.5rem 2rem;
+        }
+
+        .modal-header h5 {
+            color: #8b5cf6;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .modal-footer {
+            border-top: 1px solid var(--border-glow);
+            padding: 1.5rem 2rem;
+        }
+
+        /* Form controls */
+        .form-control {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 20px;
+            padding: 0.8rem 1.2rem;
+            color: #fff;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .form-control:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #8b5cf6;
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
+            color: #fff;
+            outline: none;
+        }
+
+        .form-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Scrollbar */
+        .table-responsive {
+            scrollbar-width: thin;
+            scrollbar-color: #8b5cf6 #1a1240;
+        }
+
+        .table-responsive::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+
+        .table-responsive::-webkit-scrollbar-track {
+            background: #1a1240;
+            border-radius: 10px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: #8b5cf6;
+            border-radius: 10px;
+            animation: scrollGlow 2s infinite alternate;
+        }
+
+        @keyframes scrollGlow {
+            0% { background: #8b5cf6; }
+            100% { background: #b77aff; }
+        }
+
+        /* Utilities */
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .btn-close-white {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+
+        @keyframes iconSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Message snippet */
+        .message-snippet {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating particles -->
+    <div class="particle" style="top: 20%; left: 10%; animation-delay: 0s;"></div>
+    <div class="particle" style="top: 60%; left: 80%; animation-delay: 3s;"></div>
+    <div class="particle" style="top: 80%; left: 30%; animation-delay: 6s;"></div>
+    <div class="particle" style="top: 40%; left: 70%; animation-delay: 9s;"></div>
+
+    <!-- Navbar (Dark Cosmic) -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top py-3">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-2 d-flex align-items-center" href="{{ url_for('index') }}">
+                <i class="fa-solid fa-bolt me-2" style="color:#b39eff;"></i>
+                <span>Acid‑to‑Amp</span>
+                <span class="badge bg-gradient ms-3 px-3 py-2 rounded-pill" style="background:linear-gradient(145deg,#667eea,#9f7aea); font-size:0.65rem; letter-spacing:1px;">BIO·SAAS</span>
+            </a>
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon" style="filter: brightness(0) invert(1);"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    {% if session.username %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}" href="{{ url_for('dashboard.dashboard') }}">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'dashboard.charts' %}active{% endif %}" href="{{ url_for('dashboard.charts') }}">
+                            <i class="fas fa-chart-line"></i> Analytics
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'dashboard.impact' %}active{% endif %}" href="{{ url_for('dashboard.impact') }}">
+                            <i class="fas fa-globe"></i> Impact
+                        </a>
+                    </li>
+                    <li class="nav-item">
+     <li class="nav-item">
+    <a class="nav-link {% if request.endpoint == 'technology' %}active{% endif %}" href="{{ url_for('technology') }}">
+        <i class="fas fa-microchip"></i> Technology
+    </a>
+</li>
+                    <!-- SYSTEM BUTTON - PURPLE GLOW -->
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'dashboard.system' %}active{% endif %}" href="{{ url_for('dashboard.system') }}">
+                            <i class="fas fa-cogs" style="color:#9fc5ff;"></i> System
+                            <span class="ms-1" style="position:relative; display:inline-block; width:8px; height:8px; background:#46d646; border-radius:50%; box-shadow:0 0 8px #00ff88;"></span>
+                        </a>
+                    </li>
+                    {% if session.role == 'admin' %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin_panel' %}active{% endif %}" href="{{ url_for('admin_panel') }}">
+                            <i class="fas fa-crown text-warning"></i> Admin
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endif %}
+                </ul>
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
+                    {% if session.username %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle fs-5 me-2" style="color:#c8b5ff;"></i> 
+                            <span>{{ session.username }}</span>
+                            {% if session.role == 'admin' %}
+                                <span class="badge bg-warning text-dark ms-2 px-3 py-1 rounded-pill fw-bold">★ ADMIN</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end mt-3">
+                            <li><a class="dropdown-item" href="{{ url_for('dashboard.dashboard') }}"><i class="fas fa-tachometer-alt fa-fw"></i> Dashboard</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-sliders-h fa-fw"></i> Preferences</a></li>
+                            {% if session.role == 'admin' %}
+                            <li><a class="dropdown-item" href="{{ url_for('admin_panel') }}"><i class="fas fa-crown fa-fw"></i> Admin panel</a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider" style="border-color:#ffffff22;"></li>
+                            <li><a class="dropdown-item text-danger fw-semibold" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt fa-fw"></i> Logout</a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link me-2 px-4" href="{{ url_for('login') }}">
+                            <i class="fas fa-sign-in-alt me-2"></i> Login
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-saas-primary px-4 py-2" href="{{ url_for('register') }}">
+                            <i class="fas fa-user-plus me-2"></i> Register
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="admin-cosmic">
+        <!-- Cosmic Header -->
+        <div class="admin-header">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <span class="badge-cosmic admin">
+                            <i class="fas fa-crown me-2"></i>ADMIN ACCESS
+                        </span>
+                        <span class="badge-cosmic user">
+                            <i class="fas fa-shield-alt me-2"></i>PRIVILEGED
+                        </span>
+                        <span class="badge-cosmic" style="background:rgba(16,185,129,0.15);border-color:#10b981;color:#34d399;">
+                            <i class="fas fa-envelope me-2"></i>{{ stats.messages|default(0) }} total
+                        </span>
+                    </div>
+                    <h1 class="admin-title mb-3">
+                        <i class="fas fa-cog me-3" style="color: #8b5cf6; animation: iconSpin 10s infinite linear;"></i>
+                        Command Center
+                    </h1>
+                    <p class="text-secondary" style="color: #b0b0d0; font-size: 1.1rem;">
+                        System administration, user management, and contact messages.
+                    </p>
+                </div>
+                <div class="col-lg-4 text-end">
+                    <div class="power-display" style="background: rgba(139, 92, 246, 0.1); border-radius: 30px; padding: 1.5rem;">
+                        <div class="text-secondary small">SYSTEM STATUS</div>
+                        <div class="fs-3 fw-bold text-white">
+                            <i class="fas fa-circle text-success me-2" style="font-size: 0.8rem; animation: livePulse 1.5s infinite;"></i>
+                            OPERATIONAL
+                        </div>
+                        <div class="text-secondary small mt-2">v2.5.0 · Bioelectric Core</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row g-4 mb-5">
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card-cosmic">
+                    <div class="stat-label">
+                        <i class="fas fa-users me-2" style="color: #8b5cf6;"></i>Total Users
+                    </div>
+                    <div class="stat-value" id="totalUsers">{{ stats.users|default(0) }}</div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card-cosmic">
+                    <div class="stat-label">
+                        <i class="fas fa-envelope me-2" style="color: #3b82f6;"></i>Contact Messages
+                    </div>
+                    <div class="stat-value">{{ stats.messages|default(0) }}</div>
+                    <div class="mt-2">
+                        <span class="badge-cosmic unread">{{ stats.unread_messages|default(0) }} unread</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card-cosmic">
+                    <div class="stat-label">
+                        <i class="fas fa-database me-2" style="color: #10b981;"></i>Sensor Readings
+                    </div>
+                    <div class="stat-value">{{ stats.readings|default(0) }}</div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card-cosmic">
+                    <div class="stat-label">
+                        <i class="fas fa-wifi me-2" style="color: #ec4899;"></i>Online Now
+                    </div>
+                    <div class="stat-value">{{ stats.online_now|default(0) }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="admin-tabs">
+            <button class="tab-btn active" id="tabUsers">👥 User Management</button>
+            <button class="tab-btn" id="tabMessages">📬 Contact Messages</button>
+            <button class="tab-btn" id="tabSystem">⚙️ System Controls</button>
+        </div>
+
+        <!-- Users Tab Content -->
+        <div id="usersContent" class="tab-content" style="display: block;">
+            <div class="card-cosmic mb-5">
+                <div class="card-header-cosmic d-flex justify-content-between align-items-center">
+                    <h6 class="m-0">
+                        <i class="fas fa-users-cog me-2"></i>User Management
+                    </h6>
+                    <button class="btn-cosmic-success" data-bs-toggle="modal" data-bs-target="#createUserModal">
+                        <i class="fas fa-plus me-2"></i>Create User
+                    </button>
+                </div>
+                <div class="card-body p-4">
+                    <div class="table-responsive">
+                        <table class="table-cosmic">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if users %}
+                                    {% for user in users %}
+                                    <tr>
+                                        <td><span class="font-mono" style="color: #8b5cf6;">{{ user._id[:8] }}</span></td>
+                                        <td class="fw-bold">{{ user.username or 'N/A' }}</td>
+                                        <td>{{ user.email or 'N/A' }}</td>
+                                        <td>
+                                            <span class="badge-cosmic {{ 'admin' if user.role == 'admin' else 'user' }}">
+                                                {{ user.role or 'user' }}
+                                            </span>
+                                        </td>
+                                        <td>{{ user.created_at_formatted if user.created_at_formatted else 'N/A' }}</td>
+                                        <td>
+                                            <div class="d-flex gap-2">
+                                                {% if user._id != session.user_id %}
+                                                <button class="btn-cosmic edit-user" 
+                                                        data-id="{{ user._id }}" 
+                                                        data-username="{{ user.username or '' }}" 
+                                                        data-email="{{ user.email or '' }}" 
+                                                        data-role="{{ user.role or 'user' }}">
+                                                    <i class="fas fa-edit me-1"></i>Edit
+                                                </button>
+                                                <button class="btn-cosmic btn-cosmic-danger delete-user" data-id="{{ user._id }}">
+                                                    <i class="fas fa-trash me-1"></i>Delete
+                                                </button>
+                                                {% else %}
+                                                <span class="badge-self">
+                                                    <i class="fas fa-user-check me-1"></i>Current User
+                                                </span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5" style="color: var(--text-secondary);">
+                                        <i class="fas fa-users-slash fa-3x mb-3" style="color: #8b5cf6;"></i>
+                                        <div>No users found in the system</div>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages Tab Content -->
+        <div id="messagesContent" class="tab-content" style="display: none;">
+            <div class="card-cosmic mb-5">
+                <div class="card-header-cosmic d-flex justify-content-between align-items-center">
+                    <h6 class="m-0">
+                        <i class="fas fa-envelope-open-text me-2"></i>Contact Messages
+                    </h6>
+                    <div>
+                        <button class="btn-cosmic" id="markAllReadBtn"><i class="fas fa-check-double me-2"></i>Mark All Read</button>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="table-responsive">
+                        <table class="table-cosmic">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Subject</th>
+                                    <th>Message</th>
+                                    <th>Received</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if messages %}
+                                    {% for msg in messages %}
+                                    <tr>
+                                        <td>
+                                            {% if msg.status == 'unread' %}
+                                            <span class="badge-cosmic unread">UNREAD</span>
+                                            {% else %}
+                                            <span class="badge-cosmic read">READ</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="fw-bold">{{ msg.name }}</td>
+                                        <td>{{ msg.email }}</td>
+                                        <td>{{ msg.subject or 'No subject' }}</td>
+                                        <td class="message-snippet">{{ msg.message[:50] }}{% if msg.message|length > 50 %}...{% endif %}</td>
+                                        <td>{{ msg.timestamp_formatted if msg.timestamp_formatted else 'N/A' }}</td>
+                                        <td>
+                                            <div class="d-flex gap-2">
+                                                <button class="btn-cosmic view-message" 
+                                                        data-id="{{ msg._id }}" 
+                                                        data-name="{{ msg.name }}" 
+                                                        data-email="{{ msg.email }}" 
+                                                        data-subject="{{ msg.subject or '' }}" 
+                                                        data-message="{{ msg.message }}"
+                                                        data-status="{{ msg.status }}">
+                                                    <i class="fas fa-eye me-1"></i>View
+                                                </button>
+                                                <button class="btn-cosmic btn-cosmic-danger delete-message" data-id="{{ msg._id }}">
+                                                    <i class="fas fa-trash me-1"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-5" style="color: var(--text-secondary);">
+                                        <i class="fas fa-envelope-open fa-3x mb-3" style="color: #8b5cf6;"></i>
+                                        <div>No contact messages yet</div>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Controls Tab Content -->
+        <div id="systemContent" class="tab-content" style="display: none;">
+            <div class="quick-actions-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="m-0" style="color: #8b5cf6;">
+                        <i class="fas fa-bolt me-2" style="animation: iconSpin 10s infinite linear;"></i>
+                        System Controls
+                    </h5>
+                    <span class="badge-cosmic admin">AUTHORIZED PERSONNEL ONLY</span>
+                </div>
+                
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="stat-card-cosmic" style="padding: 1.5rem;">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-database fa-2x" style="color: #8b5cf6;"></i>
+                                </div>
+                                <div>
+                                    <div class="text-secondary small">DATA MANAGEMENT</div>
+                                    <div class="fw-bold text-white">Clear Sensor Data</div>
+                                </div>
+                            </div>
+                            <p class="text-secondary small mb-3">Remove all historical sensor readings from database</p>
+                            <button id="clearDataBtn" class="btn-cosmic-danger w-100">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Clear All Data
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="stat-card-cosmic" style="padding: 1.5rem;">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-file-export fa-2x" style="color: #10b981;"></i>
+                                </div>
+                                <div>
+                                    <div class="text-secondary small">EXPORT OPTIONS</div>
+                                    <div class="fw-bold text-white">Export Sensor Data</div>
+                                </div>
+                            </div>
+                            <p class="text-secondary small mb-3">Export data in CSV, Excel, or JSON format</p>
+                            <div class="d-flex gap-2">
+                               <a href="#" id="exportCsv" class="btn-cosmic-success flex-grow-1" style="text-decoration: none; text-align: center;">
+    <i class="fas fa-file-csv me-2"></i>CSV
+</a>
+                                <a href="#" id="exportExcel" class="btn-cosmic-success flex-grow-1" style="text-decoration: none; text-align: center;">
+                                    <i class="fas fa-file-excel me-2"></i>Excel
+                                </a>
+                                <a href="#" id="exportJson" class="btn-cosmic-success flex-grow-1" style="text-decoration: none; text-align: center;">
+                                    <i class="fas fa-file-code me-2"></i>JSON
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="stat-card-cosmic" style="padding: 1.5rem;">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-shield-alt fa-2x" style="color: #8b5cf6;"></i>
+                                </div>
+                                <div>
+                                    <div class="text-secondary small">SECURITY</div>
+                                    <div class="fw-bold text-white">System Status</div>
+                                </div>
+                            </div>
+                            <p class="text-secondary small mb-3">All systems operational · Last backup: 2h ago</p>
+                            <button class="btn-cosmic w-100" onclick="location.reload()">
+                                <i class="fas fa-sync-alt me-2"></i>Refresh Status
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create User Modal -->
+    <div class="modal fade" id="createUserModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-plus me-2"></i>Create New User
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="createUserForm">
+                    <div class="modal-body">
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-user me-2" style="color: #8b5cf6;"></i>Username
+                            </label>
+                            <input type="text" class="form-control" name="username" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-envelope me-2" style="color: #8b5cf6;"></i>Email
+                            </label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-lock me-2" style="color: #8b5cf6;"></i>Password (leave blank for temp123)
+                            </label>
+                            <input type="password" class="form-control" name="password">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-tag me-2" style="color: #8b5cf6;"></i>Role
+                            </label>
+                            <select class="form-control" name="role">
+                                <option value="user">User</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-cosmic" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn-cosmic-success">
+                            <i class="fas fa-check me-2"></i>Create User
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="modal fade" id="editUserModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-edit me-2"></i>Edit User
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="editUserForm">
+                    <div class="modal-body">
+                        <input type="hidden" name="user_id" id="edit_user_id">
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-user me-2" style="color: #8b5cf6;"></i>Username
+                            </label>
+                            <input type="text" class="form-control" name="username" id="edit_username" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-envelope me-2" style="color: #8b5cf6;"></i>Email
+                            </label>
+                            <input type="email" class="form-control" name="email" id="edit_email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-tag me-2" style="color: #8b5cf6;"></i>Role
+                            </label>
+                            <select class="form-control" name="role" id="edit_role">
+                                <option value="user">User</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-cosmic" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn-cosmic-success">
+                            <i class="fas fa-save me-2"></i>Update User
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Message Modal -->
+    <div class="modal fade" id="viewMessageModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-envelope-open-text me-2"></i>Message Details
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>From:</strong> <span id="view_name"></span> (<span id="view_email"></span>)</p>
+                    <p><strong>Subject:</strong> <span id="view_subject"></span></p>
+                    <p><strong>Message:</strong></p>
+                    <div class="p-3" style="background:rgba(0,0,0,0.2); border-radius:12px;">
+                        <p id="view_message" style="white-space: pre-wrap;"></p>
+                    </div>
+                    <input type="hidden" id="view_message_id">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cosmic" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn-cosmic btn-cosmic-danger" id="deleteFromViewBtn">Delete</button>
+                    <button type="button" class="btn-cosmic-success" id="markReadFromViewBtn">Mark as Read</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ================== GLOBAL FUNCTIONS ==================
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.right = '20px';
+            notification.style.zIndex = '9999';
+            notification.style.padding = '1rem 2rem';
+            notification.style.borderRadius = '30px';
+            notification.style.background = type === 'success' ? 'rgba(16, 185, 129, 0.9)' : 
+                                             type === 'error' ? 'rgba(239, 68, 68, 0.9)' : 
+                                             'rgba(59, 130, 246, 0.9)';
+            notification.style.border = '1px solid ' + (type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6');
+            notification.style.color = '#fff';
+            notification.style.fontWeight = '500';
+            notification.style.backdropFilter = 'blur(10px)';
+            notification.style.boxShadow = '0 20px 40px -15px #000';
+            notification.style.animation = 'slideIn 0.3s ease-out';
+            notification.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'} me-2"></i>${message}`;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        function exportData(format) {
+            console.log('Export function called with format:', format);
+            window.location.href = `/admin/export_report?format=${format}`;
+            showNotification(`Downloading ${format.toUpperCase()}...`, 'info');
+        }
+
+        function clearAllData() {
+            console.log('clearAllData function called');
+            if (!confirm('⚠️ DANGER: Clear ALL sensor data?\nThis cannot be undone!')) return;
+            if (!confirm('FINAL WARNING: Are you absolutely sure?')) return;
+            
+            fetch('/admin/clear_data', { method: 'POST' })
+                .then(res => res.ok ? res.json() : Promise.reject('Server error'))
+                .then(data => {
+                    if (data.success) {
+                        showNotification(`Cleared ${data.cleared} records`, 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showNotification('Error clearing data', 'error');
+                    }
+                })
+                .catch(err => showNotification('Error: ' + err, 'error'));
+        }
+
+        // Add animation styles
+        if (!document.getElementById('notification-styles')) {
+            const style = document.createElement('style');
+            style.id = 'notification-styles';
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100px); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100px); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // ================== DOM CONTENT LOADED ==================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Admin panel DOM ready – attaching listeners');
+
+            // --- Tab Switching ---
+            const tabUsers = document.getElementById('tabUsers');
+            const tabMessages = document.getElementById('tabMessages');
+            const tabSystem = document.getElementById('tabSystem');
+            const usersContent = document.getElementById('usersContent');
+            const messagesContent = document.getElementById('messagesContent');
+            const systemContent = document.getElementById('systemContent');
+
+            function activateTab(activeTab) {
+                [tabUsers, tabMessages, tabSystem].forEach(t => t.classList.remove('active'));
+                activeTab.classList.add('active');
+                usersContent.style.display = 'none';
+                messagesContent.style.display = 'none';
+                systemContent.style.display = 'none';
+                if (activeTab === tabUsers) usersContent.style.display = 'block';
+                else if (activeTab === tabMessages) messagesContent.style.display = 'block';
+                else if (activeTab === tabSystem) systemContent.style.display = 'block';
+            }
+
+            tabUsers.addEventListener('click', () => activateTab(tabUsers));
+            tabMessages.addEventListener('click', () => activateTab(tabMessages));
+            tabSystem.addEventListener('click', () => activateTab(tabSystem));
+
+            // --- Clear Data Button ---
+            const clearBtn = document.getElementById('clearDataBtn');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    clearAllData();
+                });
+                console.log('✓ Clear button listener attached');
+            } else {
+                console.error('Clear button not found!');
+            }
+
+            // --- Export Links ---
+            const exportCsv = document.getElementById('exportCsv');
+            if (exportCsv) {
+                exportCsv.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    exportData('csv');
+                });
+                console.log('✓ CSV export listener attached');
+            }
+
+            const exportExcel = document.getElementById('exportExcel');
+            if (exportExcel) {
+                exportExcel.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    exportData('excel');
+                });
+                console.log('✓ Excel export listener attached');
+            }
+
+            const exportJson = document.getElementById('exportJson');
+            if (exportJson) {
+                exportJson.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    exportData('json');
+                });
+                console.log('✓ JSON export listener attached');
+            }
+
+            // --- Modal helper ---
+            function getModal(modalId) {
+                const modalEl = document.getElementById(modalId);
+                if (!modalEl) return null;
+                let modal = bootstrap.Modal.getInstance(modalEl);
+                if (!modal) modal = new bootstrap.Modal(modalEl);
+                return modal;
+            }
+
+            // --- Create User ---
+            const createForm = document.getElementById('createUserForm');
+            if (createForm) {
+                createForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const formData = new FormData(this);
+                    fetch('/admin/create_user', { method: 'POST', body: formData })
+                        .then(res => res.ok ? res.json() : res.json().then(err => { throw new Error(err.error) }))
+                        .then(data => {
+                            if (data.success) {
+                                getModal('createUserModal')?.hide();
+                                showNotification('User created successfully', 'success');
+                                setTimeout(() => location.reload(), 1000);
+                            } else {
+                                showNotification('Error: ' + (data.error || 'Unknown'), 'error');
+                            }
+                        })
+                        .catch(err => showNotification('Error: ' + err.message, 'error'));
+                });
+            }
+
+            // --- Edit User trigger ---
+            document.querySelectorAll('.edit-user').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.getElementById('edit_user_id').value = this.dataset.id;
+                    document.getElementById('edit_username').value = this.dataset.username;
+                    document.getElementById('edit_email').value = this.dataset.email;
+                    document.getElementById('edit_role').value = this.dataset.role;
+                    getModal('editUserModal')?.show();
+                });
+            });
+
+            // --- Edit User submit ---
+            const editForm = document.getElementById('editUserForm');
+            if (editForm) {
+                editForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const userId = document.getElementById('edit_user_id').value;
+                    const formData = new FormData(this);
+                    fetch(`/admin/update_user/${userId}`, { method: 'PUT', body: formData })
+                        .then(res => res.ok ? res.json() : res.json().then(err => { throw new Error(err.error) }))
+                        .then(data => {
+                            if (data.success) {
+                                getModal('editUserModal')?.hide();
+                                showNotification('User updated successfully', 'success');
+                                setTimeout(() => location.reload(), 1000);
+                            } else {
+                                showNotification('Error updating user', 'error');
+                            }
+                        })
+                        .catch(err => showNotification('Error: ' + err.message, 'error'));
+                });
+            }
+
+            // --- Delete User ---
+            document.querySelectorAll('.delete-user').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (!confirm('⚠️ Delete this user? This cannot be undone!')) return;
+                    fetch(`/admin/delete_user/${this.dataset.id}`, { method: 'POST' })
+                        .then(res => res.ok ? res.json() : res.json().then(err => { throw new Error(err.error) }))
+                        .then(data => {
+                            if (data.success) {
+                                showNotification('User deleted', 'success');
+                                setTimeout(() => location.reload(), 1000);
+                            } else {
+                                showNotification('Error deleting user', 'error');
+                            }
+                        })
+                        .catch(err => showNotification('Error: ' + err.message, 'error'));
+                });
+            });
+
+            // --- MESSAGE HANDLING ---
+            const viewMessageModal = getModal('viewMessageModal');
+
+            // View message
+            document.querySelectorAll('.view-message').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.getElementById('view_name').innerText = this.dataset.name;
+                    document.getElementById('view_email').innerText = this.dataset.email;
+                    document.getElementById('view_subject').innerText = this.dataset.subject || '(no subject)';
+                    document.getElementById('view_message').innerText = this.dataset.message;
+                    document.getElementById('view_message_id').value = this.dataset.id;
+                    viewMessageModal?.show();
+                });
+            });
+
+            // Mark as read from view modal
+            document.getElementById('markReadFromViewBtn')?.addEventListener('click', async function() {
+                const msgId = document.getElementById('view_message_id').value;
+                if (!msgId) return;
+                try {
+                    const res = await fetch(`/admin/message_read/${msgId}`, { method: 'POST' });
+                    const data = await res.json();
+                    if (data.success) {
+                        showNotification('Message marked as read', 'success');
+                        viewMessageModal?.hide();
+                        setTimeout(() => location.reload(), 800);
+                    } else {
+                        showNotification('Failed to mark as read', 'error');
+                    }
+                } catch (err) {
+                    showNotification('Network error', 'error');
+                }
+            });
+
+            // Delete from view modal
+            document.getElementById('deleteFromViewBtn')?.addEventListener('click', async function() {
+                const msgId = document.getElementById('view_message_id').value;
+                if (!msgId || !confirm('Delete this message?')) return;
+                try {
+                    const res = await fetch(`/admin/delete_message/${msgId}`, { method: 'DELETE' });
+                    const data = await res.json();
+                    if (data.success) {
+                        showNotification('Message deleted', 'success');
+                        viewMessageModal?.hide();
+                        setTimeout(() => location.reload(), 800);
+                    } else {
+                        showNotification('Delete failed', 'error');
+                    }
+                } catch (err) {
+                    showNotification('Network error', 'error');
+                }
+            });
+
+            // Delete message directly from table
+            document.querySelectorAll('.delete-message').forEach(btn => {
+                btn.addEventListener('click', async function(e) {
+                    e.stopPropagation();
+                    if (!confirm('Delete this message?')) return;
+                    const msgId = this.dataset.id;
+                    try {
+                        const res = await fetch(`/admin/delete_message/${msgId}`, { method: 'DELETE' });
+                        const data = await res.json();
+                        if (data.success) {
+                            showNotification('Message deleted', 'success');
+                            setTimeout(() => location.reload(), 800);
+                        } else {
+                            showNotification('Delete failed', 'error');
+                        }
+                    } catch (err) {
+                        showNotification('Network error', 'error');
+                    }
+                });
+            });
+
+            // Mark all as read
+            document.getElementById('markAllReadBtn')?.addEventListener('click', async function() {
+                try {
+                    const res = await fetch('/admin/messages/mark_all_read', { method: 'POST' });
+                    const data = await res.json();
+                    if (data.success) {
+                        showNotification('All messages marked as read', 'success');
+                        setTimeout(() => location.reload(), 800);
+                    } else {
+                        showNotification('Failed to mark all as read', 'error');
+                    }
+                } catch (err) {
+                    showNotification('Network error', 'error');
+                }
+            });
+        });
+    </script>
+
+    <!-- Flash messages from Flask -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <script>
+                (function() {
+                    {% for category, message in messages %}
+                        showNotification("{{ message }}", "{{ category }}");
+                    {% endfor %}
+                })();
+            </script>
+        {% endif %}
+    {% endwith %}
+</body>
+</html>

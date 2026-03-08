@@ -1,0 +1,805 @@
+{% extends "base.html" %}
+
+{% block title %}Environmental Impact - Acid-to-Amp Bioelectric Intelligence{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== COSMIC IMPACT THEME ===== */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    
+    :root {
+        --glow-purple: #b77aff;
+        --glow-blue: #6a8cff;
+        --glow-cyan: #44e0c0;
+        --glow-pink: #ff7ad0;
+        --dark-bg: #030014;
+        --card-bg: #0b0720;
+        --border-glow: rgba(183, 122, 255, 0.3);
+        --text-primary: #ffffff;
+        --text-secondary: #b0b0d0;
+        --accent-purple: #8b5cf6;
+        --accent-blue: #3b82f6;
+        --accent-green: #10b981;
+        --accent-cyan: #22d3ee;
+    }
+    
+    body {
+        background: var(--dark-bg);
+        font-family: 'Inter', sans-serif;
+        position: relative;
+        overflow-x: hidden;
+        color: var(--text-primary);
+    }
+    
+    /* Animated background grid */
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+            linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+        pointer-events: none;
+        z-index: 0;
+        animation: gridMove 20s linear infinite;
+    }
+    
+    @keyframes gridMove {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(20px, 20px); }
+    }
+    
+    /* Floating particles */
+    .particle {
+        position: fixed;
+        width: 4px;
+        height: 4px;
+        background: rgba(139, 92, 246, 0.3);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 0;
+        animation: float 15s infinite ease-in-out;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translate(0, 0); opacity: 0.3; }
+        25% { transform: translate(100px, -100px); opacity: 0.6; }
+        50% { transform: translate(200px, 0); opacity: 0.3; }
+        75% { transform: translate(100px, 100px); opacity: 0.6; }
+    }
+    
+    /* Nebula clouds */
+    .nebula {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 70% 30%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
+            radial-gradient(circle at 30% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 45%);
+        filter: blur(40px);
+        pointer-events: none;
+        z-index: 0;
+        animation: nebulaDrift 30s infinite alternate;
+    }
+    
+    @keyframes nebulaDrift {
+        0% { transform: scale(1) translate(0, 0); opacity: 0.5; }
+        100% { transform: scale(1.2) translate(2%, 2%); opacity: 0.8; }
+    }
+    
+    /* Main container */
+    .impact-cosmic {
+        position: relative;
+        z-index: 10;
+        padding: 2rem 1.5rem;
+    }
+    
+    /* Header */
+    .impact-header {
+        background: var(--card-bg);
+        border: 1px solid var(--border-glow);
+        border-radius: 30px;
+        padding: 2.5rem 3rem;
+        margin-bottom: 3rem;
+        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.8);
+        position: relative;
+        overflow: hidden;
+        animation: headerGlow 4s infinite alternate;
+    }
+    
+    .impact-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+        animation: rotate 20s linear infinite;
+    }
+    
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    @keyframes headerGlow {
+        0%, 100% { border-color: rgba(139, 92, 246, 0.3); }
+        50% { border-color: rgba(139, 92, 246, 0.8); }
+    }
+    
+    .impact-title {
+        font-size: 3rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #fff, #b794ff, #6a8cff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+        animation: titleGlow 3s infinite alternate;
+    }
+    
+    @keyframes titleGlow {
+        0% { text-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
+        100% { text-shadow: 0 0 40px rgba(139, 92, 246, 0.8); }
+    }
+    
+    .impact-subtitle {
+        color: var(--text-secondary);
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .live-badge {
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid #ef4444;
+        border-radius: 30px;
+        padding: 0.3rem 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .live-dot {
+        width: 8px;
+        height: 8px;
+        background: #ef4444;
+        border-radius: 50%;
+        animation: livePulse 1.5s infinite;
+    }
+    
+    @keyframes livePulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.6; transform: scale(1.3); }
+    }
+    
+    /* Stats Cards */
+    .stat-card-impact {
+        background: var(--card-bg);
+        border: 1px solid var(--border-glow);
+        border-radius: 24px;
+        padding: 1.8rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        animation: cardFloat 3s infinite alternate;
+    }
+    
+    .stat-card-impact:hover {
+        transform: translateY(-5px);
+        border-color: #8b5cf6;
+        box-shadow: 0 20px 40px -15px #8b5cf6;
+    }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        background: rgba(139, 92, 246, 0.15);
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+    
+    .stat-icon i {
+        font-size: 2rem;
+        color: #8b5cf6;
+    }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #fff;
+        font-family: 'JetBrains Mono', monospace;
+        margin-bottom: 0.3rem;
+    }
+    
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Table Styles */
+    .table-cosmic {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 10px;
+    }
+    
+    .table-cosmic thead th {
+        background: rgba(139, 92, 246, 0.15);
+        color: #8b5cf6;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 1.2rem;
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        border-radius: 16px 16px 8px 8px;
+    }
+    
+    .table-cosmic tbody tr {
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 16px;
+        transition: all 0.3s;
+        animation: rowFadeIn 0.5s ease-out;
+    }
+    
+    .table-cosmic tbody tr:hover {
+        background: rgba(139, 92, 246, 0.15);
+        transform: scale(1.01);
+        box-shadow: 0 10px 20px -10px #8b5cf6;
+    }
+    
+    .table-cosmic td {
+        padding: 1.2rem;
+        color: var(--text-primary);
+        font-weight: 500;
+        border: 1px solid transparent;
+        border-radius: 12px;
+    }
+    
+    .badge-improvement {
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+        padding: 0.3rem 1rem;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        display: inline-block;
+    }
+    
+    .badge-pass {
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+        padding: 0.3rem 1rem;
+        border-radius: 30px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        display: inline-block;
+    }
+    
+    .badge-live {
+        background: rgba(139, 92, 246, 0.15);
+        color: #8b5cf6;
+        padding: 0.4rem 1.2rem;
+        border-radius: 30px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border: 1px solid #8b5cf6;
+        animation: badgePulse 2s infinite;
+    }
+    
+    @keyframes badgePulse {
+        0%, 100% { box-shadow: 0 0 10px rgba(139, 92, 246, 0.3); }
+        50% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.6); }
+    }
+    
+    /* Impact Cards */
+    .impact-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-glow);
+        border-radius: 30px;
+        padding: 2rem;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .impact-card.gradient {
+        background: linear-gradient(145deg, #1a1240, #0e0930);
+    }
+    
+    .impact-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+        filter: blur(30px);
+    }
+    
+    .impact-number {
+        font-size: 4rem;
+        font-weight: 800;
+        color: #fff;
+        text-shadow: 0 0 30px #8b5cf6;
+        line-height: 1;
+        font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .impact-unit {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        margin-left: 0.5rem;
+    }
+    
+    /* Progress Bars */
+    .progress-cosmic {
+        height: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        overflow: hidden;
+        margin: 1rem 0;
+    }
+    
+    .progress-bar-cosmic {
+        height: 100%;
+        background: linear-gradient(90deg, #8b5cf6, #3b82f6);
+        border-radius: 20px;
+        position: relative;
+        animation: progressShimmer 3s infinite linear;
+    }
+    
+    @keyframes progressShimmer {
+        0% { background-position: 0% 0%; }
+        100% { background-position: 200% 0%; }
+    }
+    
+    /* Timeline */
+    .timeline-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 20px;
+        border: 1px solid rgba(139, 92, 246, 0.1);
+        transition: all 0.3s;
+    }
+    
+    .timeline-item:hover {
+        border-color: rgba(139, 92, 246, 0.4);
+        background: rgba(139, 92, 246, 0.05);
+    }
+    
+    .timeline-icon {
+        width: 40px;
+        height: 40px;
+        background: rgba(139, 92, 246, 0.15);
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .timeline-icon i {
+        color: #8b5cf6;
+        font-size: 1.2rem;
+    }
+    
+    .timeline-content {
+        flex: 1;
+    }
+    
+    .timeline-date {
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        margin-bottom: 0.2rem;
+    }
+    
+    .timeline-title {
+        color: #fff;
+        font-weight: 600;
+        margin-bottom: 0.2rem;
+    }
+    
+    .timeline-value {
+        color: #8b5cf6;
+        font-weight: 600;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .impact-header { padding: 1.5rem; }
+        .impact-title { font-size: 2rem; }
+        .impact-number { font-size: 3rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Floating particles -->
+<div class="particle" style="top: 20%; left: 10%; animation-delay: 0s;"></div>
+<div class="particle" style="top: 60%; left: 80%; animation-delay: 3s;"></div>
+<div class="particle" style="top: 80%; left: 30%; animation-delay: 6s;"></div>
+<div class="particle" style="top: 40%; left: 70%; animation-delay: 9s;"></div>
+<div class="nebula"></div>
+
+<div class="impact-cosmic">
+    <!-- Header -->
+    <div class="impact-header">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="impact-title">
+                    <i class="fas fa-globe-asia me-3" style="color: #8b5cf6;"></i>
+                    Environmental Impact
+                </h1>
+                <div class="impact-subtitle">
+                    <span>Jharkhand AMD Remediation Project</span>
+                    <span class="live-badge">
+                        <span class="live-dot"></span>
+                        LIVE MONITORING
+                    </span>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="d-flex justify-content-end">
+                    <div class="text-end">
+                        <div class="text-secondary small">CUMULATIVE IMPACT</div>
+                        <div class="fs-2 fw-bold text-white">Since 2024</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Impact Stats Row -->
+    <div class="row g-4 mb-5">
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card-impact">
+                <div class="stat-icon">
+                    <i class="fas fa-tint"></i>
+                </div>
+                <div class="stat-value" id="totalWater">15,240</div>
+                <div class="stat-label">Total Water Cleaned (L)</div>
+                <div class="progress-cosmic mt-3">
+                    <div class="progress-bar-cosmic" style="width: 76%;"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="text-secondary small">Target: 20,000 L</span>
+                    <span class="text-success small">+76%</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card-impact">
+                <div class="stat-icon">
+                    <i class="fas fa-weight-hanging"></i>
+                </div>
+                <div class="stat-value" id="totalMetals">2.3</div>
+                <div class="stat-label">Heavy Metals Removed (Tons)</div>
+                <div class="progress-cosmic mt-3">
+                    <div class="progress-bar-cosmic" style="width: 82%;"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="text-secondary small">Fe, Cu, Mn</span>
+                    <span class="text-success small">82% avg</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card-impact">
+                <div class="stat-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <div class="stat-value" id="totalEnergy">48.5</div>
+                <div class="stat-label">Energy Generated (kWh)</div>
+                <div class="progress-cosmic mt-3">
+                    <div class="progress-bar-cosmic" style="width: 64%; background: linear-gradient(90deg, #f59e0b, #fbbf24);"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="text-secondary small">Powered 48 homes/day</span>
+                    <span class="text-warning small">64% efficiency</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card-impact">
+                <div class="stat-icon">
+                    <i class="fas fa-leaf"></i>
+                </div>
+                <div class="stat-value" id="co2Offset">127</div>
+                <div class="stat-label">CO₂ Offset (kg)</div>
+                <div class="progress-cosmic mt-3">
+                    <div class="progress-bar-cosmic" style="width: 45%; background: linear-gradient(90deg, #10b981, #34d399);"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="text-secondary small">Equivalent to 15 trees</span>
+                    <span class="text-success small">+23 kg</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Row -->
+    <div class="row g-4">
+        <!-- Water Quality Table -->
+        <div class="col-lg-7">
+            <div class="impact-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="text-white mb-0">
+                        <i class="fas fa-table me-2" style="color: #8b5cf6;"></i>
+                        Water Quality Results
+                    </h5>
+                    <span class="badge-live">IS:10500 STANDARDS</span>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table-cosmic">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Before</th>
+                                <th>After</th>
+                                <th>Improvement</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold">pH Level</td>
+                                <td class="text-danger">2.8</td>
+                                <td class="text-success">5.1</td>
+                                <td><span class="badge-improvement"><i class="fas fa-arrow-up me-1"></i>82%</span></td>
+                                <td><span class="badge-pass"><i class="fas fa-check-circle me-1"></i>PASS</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Iron (Fe)</td>
+                                <td class="text-danger">120 mg/L</td>
+                                <td class="text-success">30 mg/L</td>
+                                <td><span class="badge-improvement"><i class="fas fa-arrow-down me-1"></i>75%</span></td>
+                                <td><span class="badge-pass"><i class="fas fa-check-circle me-1"></i>PASS</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Copper (Cu)</td>
+                                <td class="text-danger">50 mg/L</td>
+                                <td class="text-success">10 mg/L</td>
+                                <td><span class="badge-improvement"><i class="fas fa-arrow-down me-1"></i>80%</span></td>
+                                <td><span class="badge-pass"><i class="fas fa-check-circle me-1"></i>PASS</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Manganese (Mn)</td>
+                                <td class="text-danger">35 mg/L</td>
+                                <td class="text-success">8 mg/L</td>
+                                <td><span class="badge-improvement"><i class="fas fa-arrow-down me-1"></i>77%</span></td>
+                                <td><span class="badge-pass"><i class="fas fa-check-circle me-1"></i>PASS</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Sulfate (SO₄)</td>
+                                <td class="text-danger">850 mg/L</td>
+                                <td class="text-warning">210 mg/L</td>
+                                <td><span class="badge-improvement"><i class="fas fa-arrow-down me-1"></i>75%</span></td>
+                                <td><span class="badge-pass"><i class="fas fa-check-circle me-1"></i>PASS</span></td>
+                            </tr>
+                            <tr style="background: rgba(139, 92, 246, 0.1);">
+                                <td class="fw-bold">Total Volume</td>
+                                <td>—</td>
+                                <td class="fw-bold text-info">15,240 L</td>
+                                <td colspan="2"><span class="badge-live"><i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i> LIVE</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row g-3 mt-4">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <span class="text-secondary small">Drinking water standard achieved</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <span class="text-secondary small">ISO 14001 compliant</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Impact Stats Card -->
+        <div class="col-lg-5">
+            <div class="impact-card gradient h-100">
+                <div class="text-center mb-5">
+                    <div class="stat-icon mx-auto" style="width: 100px; height: 100px;">
+                        <i class="fas fa-tint fa-3x"></i>
+                    </div>
+                    <div class="impact-number mt-3" id="liveTotal">15,240</div>
+                    <div class="text-secondary fs-5">Total Water Cleaned</div>
+                    <span class="badge-live mt-3"><i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i> UPDATING</span>
+                </div>
+
+                <div class="row g-4 text-center">
+                    <div class="col-6">
+                        <div class="p-3" style="border-right: 1px solid rgba(139, 92, 246, 0.3);">
+                            <div class="fs-2 fw-bold text-white" id="metalsRemoved">2.3</div>
+                            <div class="text-secondary small">Tons Removed</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3">
+                            <div class="fs-2 fw-bold text-white" id="energyGenerated">48.5</div>
+                            <div class="text-secondary small">kWh Generated</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline -->
+                <div class="mt-5">
+                    <h6 class="text-white mb-3">
+                        <i class="fas fa-clock me-2" style="color: #8b5cf6;"></i>
+                        Recent Impact
+                    </h6>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-icon">
+                            <i class="fas fa-tint"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="timeline-date">Today, 09:23 AM</div>
+                            <div class="timeline-title">Water cleaned</div>
+                            <div class="timeline-value">+1,240 L</div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-icon">
+                            <i class="fas fa-weight-hanging"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="timeline-date">Yesterday</div>
+                            <div class="timeline-title">Metals extracted</div>
+                            <div class="timeline-value">+180 kg</div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="timeline-date">Yesterday</div>
+                            <div class="timeline-title">Energy generated</div>
+                            <div class="timeline-value">+3.8 kWh</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Impact Badges -->
+                <div class="d-flex flex-wrap gap-2 mt-4">
+                    <span class="badge-live"><i class="fas fa-leaf me-1"></i> Eco-Friendly</span>
+                    <span class="badge-live"><i class="fas fa-recycle me-1"></i> Sustainable</span>
+                    <span class="badge-live"><i class="fas fa-solar-panel me-1"></i> Renewable</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Impact Metrics -->
+    <div class="row g-4 mt-4">
+        <div class="col-lg-4">
+            <div class="stat-card-impact">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="stat-icon" style="width: 50px; height: 50px;">
+                        <i class="fas fa-tree"></i>
+                    </div>
+                    <div>
+                        <div class="stat-value" style="font-size: 1.8rem;">15</div>
+                        <div class="stat-label">Trees Saved</div>
+                    </div>
+                </div>
+                <p class="text-secondary small mb-0">Equivalent to forest conservation</p>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="stat-card-impact">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="stat-icon" style="width: 50px; height: 50px;">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <div>
+                        <div class="stat-value" style="font-size: 1.8rem;">2,450</div>
+                        <div class="stat-label">Car KM Avoided</div>
+                    </div>
+                </div>
+                <p class="text-secondary small mb-0">CO₂ emissions prevented</p>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="stat-card-impact">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="stat-icon" style="width: 50px; height: 50px;">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <div>
+                        <div class="stat-value" style="font-size: 1.8rem;">48</div>
+                        <div class="stat-label">Homes Powered</div>
+                    </div>
+                </div>
+                <p class="text-secondary small mb-0">Daily household energy equivalent</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Live updates simulation
+    const socket = io();
+    
+    socket.on('sensor_update', function(data) {
+        // Update impact numbers
+        updateImpactNumbers();
+    });
+    
+    // Simulate live updates
+    function updateImpactNumbers() {
+        const totalWater = document.getElementById('totalWater');
+        const totalMetals = document.getElementById('totalMetals');
+        const totalEnergy = document.getElementById('totalEnergy');
+        const liveTotal = document.getElementById('liveTotal');
+        const metalsRemoved = document.getElementById('metalsRemoved');
+        const energyGenerated = document.getElementById('energyGenerated');
+        
+        if (totalWater) {
+            const current = parseFloat(totalWater.innerText.replace(',', ''));
+            const increment = Math.random() * 10;
+            totalWater.innerText = (current + increment).toFixed(0);
+            if (liveTotal) liveTotal.innerText = totalWater.innerText;
+        }
+        
+        if (totalMetals) {
+            const current = parseFloat(totalMetals.innerText);
+            const increment = Math.random() * 0.1;
+            totalMetals.innerText = (current + increment).toFixed(1);
+            if (metalsRemoved) metalsRemoved.innerText = totalMetals.innerText;
+        }
+        
+        if (totalEnergy) {
+            const current = parseFloat(totalEnergy.innerText);
+            const increment = Math.random() * 0.5;
+            totalEnergy.innerText = (current + increment).toFixed(1);
+            if (energyGenerated) energyGenerated.innerText = totalEnergy.innerText;
+        }
+    }
+    
+    // Update every 30 seconds
+    setInterval(updateImpactNumbers, 30000);
+});
+</script>
+{% endblock %}

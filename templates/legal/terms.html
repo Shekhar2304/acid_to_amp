@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Terms of Service - Acid-to-Amp{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="text-center mb-5">
+            <h1 class="display-4 fw-bold mb-3" style="background: linear-gradient(135deg, #7f62f0, #5236b5); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                Terms of Service
+            </h1>
+            <p class="lead text-muted fs-5">Bioelectric intelligence platform agreement</p>
+            <div class="badge badge-role fs-6 px-4 py-2 mt-3 d-inline-block">Effective: March 08, 2026</div>
+        </div>
+
+        <div class="row g-5">
+            <!-- Acceptance of Terms -->
+            <div class="col-12">
+                <div class="card-saas p-5">
+                    <h2 class="h3 fw-bold mb-4" style="color: var(--deep-purple);">
+                        <i class="fas fa-handshake me-3 text-primary"></i>1. Acceptance of Terms
+                    </h2>
+                    <p class="fs-5 mb-4">By accessing Acid-to-Amp (the "Service"), you agree to be bound by these Terms of Service. If you don't agree, please don't use our platform.</p>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        This is a legally binding agreement between you and S3 Innovators.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Permitted Use -->
+            <div class="col-12">
+                <div class="card-saas p-5">
+                    <h2 class="h3 fw-bold mb-4" style="color: var(--deep-purple);">
+                        <i class="fas fa-microscope me-3 text-success"></i>2. Permitted Use
+                    </h2>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <h5 class="fw-bold mb-3"><i class="fas fa-check-circle text-success me-2"></i>✅ Allowed</h5>
+                            <ul class="list-unstyled fs-6">
+                                <li class="mb-2">Bioelectric remediation research</li>
+                                <li class="mb-2">Legitimate scientific experiments</li>
+                                <li class="mb-2">FDA pathway compliance testing</li>
+                                <li class="mb-2">Academic & commercial R&D</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="fw-bold mb-3"><i class="fas fa-times-circle text-danger me-2"></i>❌ Prohibited</h5>
+                            <ul class="list-unstyled fs-6">
+                                <li class="mb-2">Illegal activities</li>
+                                <li class="mb-2">Biohazard experiments</li>
+                                <li class="mb-2">Data scraping</li>
+                                <li class="mb-2">Commercial resale of data</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Responsibilities -->
+            <div class="col-12">
+                <div class="card-saas p-5 border-start border-5 border-info">
+                    <h2 class="h3 fw-bold mb-4" style="color: var(--deep-purple);">
+                        <i class="fas fa-user-shield me-3 text-info"></i>3. Account Responsibilities
+                    </h2>
+                    <div class="row">
+                        <div class="col-lg-4 mb-4">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-info bg-opacity-10 p-3 rounded me-3 mt-1">
+                                    <i class="fas fa-key text-info"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">Secure Your Account</h6>
+                                    <p class="text-muted small mb-0">Keep credentials confidential</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 mb-4">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-success bg-opacity-10 p-3 rounded me-3 mt-1">
+                                    <i class="fas fa-chart-line text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">Accurate Data</h6>
+                                    <p class="text-muted small mb-0">Provide truthful experiment data</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 mb-4">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-warning bg-opacity-10 p-3 rounded me-3 mt-1">
+                                    <i class="fas fa-clock text-warning"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">Compliance</h6>
+                                    <p class="text-muted small mb-0">Follow all applicable laws & FDA guidelines</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Termination -->
+            <div class="col-12">
+                <div class="card-saas p-5">
+                    <h2 class="h3 fw-bold mb-4" style="color: var(--deep-purple);">
+                        <i class="fas fa-power-off me-3 text-danger"></i>4. Termination
+                    </h2>
+                    <p class="fs-5 mb-4">We may suspend or terminate your account for violations. You can delete your account anytime from Dashboard → Preferences.</p>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Immediate termination</strong> for biohazard experiments or illegal activities.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact & Governing Law -->
+            <div class="col-12">
+                <div class="card-saas p-5 text-center">
+                    <h2 class="h3 fw-bold mb-4" style="color: var(--deep-purple);">
+                        <i class="fas fa-gavel me-3"></i>Contact & Governing Law
+                    </h2>
+                    <div class="row justify-content-center g-4">
+                        <div class="col-md-4">
+                            <a href="{{ url_for('contact') }}" class="btn btn-saas-primary btn-lg w-100 mb-3">
+                                <i class="fas fa-envelope me-2"></i>Contact Us
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-4 bg-light rounded-4">
+                                <h6 class="fw-bold mb-2">Governing Law</h6>
+                                <p class="text-muted small mb-0">Laws of Delaware, USA</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-4 bg-light rounded-4">
+                                <h6 class="fw-bold mb-2">Support</h6>
+                                <p class="text-muted small mb-0">24/7 enterprise support</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

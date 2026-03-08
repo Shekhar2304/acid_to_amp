@@ -1,0 +1,1505 @@
+{% extends "base.html" %}
+
+{% block title %}Live Dashboard - Acid-to-Amp Bioelectric Intelligence{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== DARK MATTER DASHBOARD WITH ANIMATIONS ===== */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    
+    :root {
+        --glow-purple: #b77aff;
+        --glow-blue: #6a8cff;
+        --glow-cyan: #44e0c0;
+        --glow-pink: #ff7ad0;
+        --dark-bg: #030014;
+        --card-bg: #0b0720;
+        --border-glow: rgba(183, 122, 255, 0.3);
+        --text-primary: #ffffff;
+        --text-secondary: #b0b0d0;
+        --accent-purple: #8b5cf6;
+        --accent-blue: #3b82f6;
+    }
+    
+    body {
+        background: var(--dark-bg);
+        font-family: 'Inter', sans-serif;
+        position: relative;
+        overflow-x: hidden;
+        color: var(--text-primary);
+    }
+    
+    /* Animated background grid */
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+            linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+        pointer-events: none;
+        z-index: 0;
+        animation: gridMove 20s linear infinite;
+    }
+    
+    @keyframes gridMove {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(20px, 20px); }
+    }
+    
+    /* Floating particles */
+    .particle {
+        position: fixed;
+        width: 4px;
+        height: 4px;
+        background: rgba(139, 92, 246, 0.3);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 0;
+        animation: float 15s infinite ease-in-out;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translate(0, 0); opacity: 0.3; }
+        25% { transform: translate(100px, -100px); opacity: 0.6; }
+        50% { transform: translate(200px, 0); opacity: 0.3; }
+        75% { transform: translate(100px, 100px); opacity: 0.6; }
+    }
+    
+    /* Nebula clouds */
+    .nebula {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 70% 30%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
+            radial-gradient(circle at 30% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 45%),
+            radial-gradient(circle at 90% 70%, rgba(236, 72, 153, 0.06) 0%, transparent 50%);
+        filter: blur(40px);
+        pointer-events: none;
+        z-index: 0;
+        animation: nebulaDrift 30s infinite alternate ease-in-out;
+    }
+    
+    @keyframes nebulaDrift {
+        0% { transform: scale(1) translate(0, 0); opacity: 0.5; }
+        100% { transform: scale(1.2) translate(2%, 2%); opacity: 0.8; }
+    }
+    
+    /* Main content wrapper */
+    .dashboard-dark {
+        position: relative;
+        z-index: 10;
+        max-width: 2000px;
+        margin: 0 auto;
+        padding: 2rem 2rem;
+    }
+    
+    /* ===== DARK HEADER WITH ANIMATIONS ===== */
+    .dark-header {
+        background: var(--card-bg);
+        border: 1px solid var(--border-glow);
+        border-radius: 24px;
+        padding: 2rem 2.5rem;
+        margin-bottom: 2.5rem;
+        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(183, 122, 255, 0.2) inset;
+        position: relative;
+        overflow: hidden;
+        animation: headerGlow 4s infinite alternate;
+    }
+    
+    .dark-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+        animation: rotate 20s linear infinite;
+    }
+    
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    @keyframes headerGlow {
+        0%, 100% { box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(183, 122, 255, 0.2) inset; }
+        50% { box-shadow: 0 20px 50px -10px #8b5cf6, 0 0 0 1px rgba(183, 122, 255, 0.4) inset; }
+    }
+    
+    /* Live badge with plasma effect */
+    .live-badge-dark {
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid #ef4444;
+        border-radius: 30px;
+        padding: 0.5rem 1.5rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        position: relative;
+        animation: plasmaGlow 2s infinite;
+    }
+    
+    .live-badge-dark::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        border-radius: 30px;
+        background: linear-gradient(45deg, #ef4444, #8b5cf6, #3b82f6);
+        z-index: -1;
+        animation: borderPulse 2s infinite;
+    }
+    
+    @keyframes borderPulse {
+        0%, 100% { opacity: 0.3; }
+        50% { opacity: 0.8; }
+    }
+    
+    @keyframes plasmaGlow {
+        0%, 100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+        50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.5); }
+    }
+    
+    .live-dot-dark {
+        width: 10px;
+        height: 10px;
+        background: #ef4444;
+        border-radius: 50%;
+        box-shadow: 0 0 15px #ef4444;
+        animation: livePulse 1.5s infinite;
+    }
+    
+    @keyframes livePulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.6; transform: scale(1.3); }
+    }
+    
+    /* Stat badges */
+    .stat-badge {
+        background: rgba(139, 92, 246, 0.1);
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        border-radius: 30px;
+        padding: 0.5rem 1.2rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-primary);
+        font-weight: 500;
+        animation: badgePulse 3s infinite;
+    }
+    
+    @keyframes badgePulse {
+        0%, 100% { border-color: rgba(139, 92, 246, 0.3); }
+        50% { border-color: rgba(139, 92, 246, 0.8); box-shadow: 0 0 15px rgba(139, 92, 246, 0.3); }
+    }
+    
+    /* Power display with crystal animation */
+    .power-display {
+        background: linear-gradient(145deg, #0e0930, #08041f);
+        border: 1px solid var(--border-glow);
+        border-radius: 30px;
+        padding: 1.5rem 2rem;
+        text-align: center;
+        box-shadow: 0 15px 35px -10px #8b5cf6;
+        position: relative;
+        overflow: hidden;
+        animation: powerPulse 3s infinite alternate;
+    }
+    
+    .power-display::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 70%);
+        animation: rotate 10s linear infinite;
+    }
+    
+    @keyframes powerPulse {
+        0% { box-shadow: 0 15px 35px -10px #8b5cf6; }
+        100% { box-shadow: 0 20px 45px -5px #b77aff; }
+    }
+    
+    .power-value {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: #fff;
+        text-shadow: 0 0 20px #8b5cf6;
+        line-height: 1;
+        animation: textGlow 2s infinite alternate;
+    }
+    
+    @keyframes textGlow {
+        0% { text-shadow: 0 0 20px #8b5cf6; }
+        100% { text-shadow: 0 0 40px #b77aff, 0 0 60px #8b5cf6; }
+    }
+    
+    /* ===== METRIC CARDS WITH ANIMATIONS ===== */
+    .metric-card-dark {
+        background: var(--card-bg);
+        border: 1px solid var(--border-glow);
+        border-radius: 24px;
+        padding: 1.8rem;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 15px 35px -15px rgba(0, 0, 0, 0.9);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .metric-card-dark::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+        transition: left 0.7s;
+    }
+    
+    .metric-card-dark:hover::before {
+        left: 100%;
+    }
+    
+    .metric-card-dark:hover {
+        transform: translateY(-8px) scale(1.02);
+        border-color: #8b5cf6;
+        box-shadow: 0 25px 45px -15px #8b5cf6;
+    }
+    
+    .metric-icon-dark {
+        width: 60px;
+        height: 60px;
+        background: rgba(139, 92, 246, 0.15);
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: iconPulse 3s infinite alternate;
+    }
+    
+    .metric-icon-dark i {
+        font-size: 1.8rem;
+        color: #8b5cf6;
+        animation: iconRotate 10s infinite linear;
+    }
+    
+    @keyframes iconPulse {
+        0% { border-color: rgba(139, 92, 246, 0.3); }
+        100% { border-color: rgba(139, 92, 246, 0.8); box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
+    }
+    
+    @keyframes iconRotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    .metric-value-dark {
+        font-size: 2.8rem;
+        font-weight: 700;
+        color: #fff;
+        line-height: 1;
+        font-family: 'JetBrains Mono', monospace;
+        animation: valueGlow 2s infinite alternate;
+    }
+    
+    @keyframes valueGlow {
+        0% { text-shadow: 0 0 10px rgba(139, 92, 246, 0.3); }
+        100% { text-shadow: 0 0 20px rgba(139, 92, 246, 0.8); }
+    }
+    
+    .metric-trend-up {
+        background: rgba(34, 197, 94, 0.15);
+        color: #4ade80;
+        padding: 0.25rem 0.75rem;
+        border-radius: 30px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: 1px solid rgba(74, 222, 128, 0.3);
+        animation: trendPulse 2s infinite;
+    }
+    
+    .metric-trend-down {
+        background: rgba(239, 68, 68, 0.15);
+        color: #f87171;
+        padding: 0.25rem 0.75rem;
+        border-radius: 30px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: 1px solid rgba(248, 113, 113, 0.3);
+        animation: trendPulse 2s infinite;
+    }
+    
+    @keyframes trendPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    /* Progress bar with shimmer */
+    .progress-dark {
+        height: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        overflow: hidden;
+        margin-top: 1rem;
+    }
+    
+    .progress-bar-dark {
+        height: 100%;
+        background: linear-gradient(90deg, #8b5cf6, #3b82f6);
+        border-radius: 20px;
+        position: relative;
+        animation: progressShimmer 3s infinite linear;
+    }
+    
+    .progress-bar-dark::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        animation: shimmer 2s infinite;
+    }
+    
+    @keyframes progressShimmer {
+        0% { background-position: 0% 0%; }
+        100% { background-position: 200% 0%; }
+    }
+    
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    
+    /* ===== CHART CONTAINERS ===== */
+    .chart-container-dark {
+        background: var(--card-bg);
+        border: 1px solid var(--border-glow);
+        border-radius: 24px;
+        padding: 1.8rem;
+        box-shadow: 0 15px 35px -15px rgba(0, 0, 0, 0.9);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s;
+        animation: containerGlow 4s infinite alternate;
+    }
+    
+    .chart-container-dark::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+        filter: blur(30px);
+        animation: glowFloat 8s infinite alternate;
+    }
+    
+    @keyframes containerGlow {
+        0% { border-color: rgba(139, 92, 246, 0.2); }
+        100% { border-color: rgba(139, 92, 246, 0.5); }
+    }
+    
+    @keyframes glowFloat {
+        0% { transform: translate(0, 0); opacity: 0.3; }
+        100% { transform: translate(-50px, -50px); opacity: 0.6; }
+    }
+    
+    .chart-title-dark {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        animation: titleGlow 3s infinite alternate;
+    }
+    
+    .chart-title-dark i {
+        color: #8b5cf6;
+        font-size: 1.4rem;
+        animation: iconSpin 10s infinite linear;
+    }
+    
+    @keyframes titleGlow {
+        0% { text-shadow: 0 0 10px rgba(139, 92, 246, 0.3); }
+        100% { text-shadow: 0 0 20px rgba(139, 92, 246, 0.8); }
+    }
+    
+    @keyframes iconSpin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    .badge-time {
+        background: rgba(139, 92, 246, 0.15);
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        color: #8b5cf6;
+        padding: 0.3rem 1rem;
+        border-radius: 30px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-left: 1rem;
+        animation: badgeGlow 2s infinite alternate;
+    }
+    
+    @keyframes badgeGlow {
+        0% { border-color: rgba(139, 92, 246, 0.3); }
+        100% { border-color: rgba(139, 92, 246, 0.8); box-shadow: 0 0 15px rgba(139, 92, 246, 0.3); }
+    }
+    
+    /* Stats mini cards */
+    .stat-mini {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(139, 92, 246, 0.15);
+        border-radius: 20px;
+        padding: 1rem;
+        text-align: center;
+        transition: all 0.3s;
+        animation: statMiniPulse 3s infinite alternate;
+    }
+    
+    .stat-mini:hover {
+        border-color: rgba(139, 92, 246, 0.6);
+        background: rgba(139, 92, 246, 0.1);
+        transform: translateY(-4px);
+        box-shadow: 0 15px 25px -10px #8b5cf6;
+    }
+    
+    @keyframes statMiniPulse {
+        0% { border-color: rgba(139, 92, 246, 0.15); }
+        100% { border-color: rgba(139, 92, 246, 0.4); }
+    }
+    
+    /* Metal stats */
+    .metal-stat {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        margin-bottom: 1.2rem;
+        animation: slideIn 0.5s ease-out;
+    }
+    
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateX(-20px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    
+    .metal-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 4px;
+        animation: colorPulse 2s infinite alternate;
+    }
+    
+    @keyframes colorPulse {
+        0% { opacity: 0.7; }
+        100% { opacity: 1; box-shadow: 0 0 10px currentColor; }
+    }
+    
+    /* ===== TABLE ANIMATIONS ===== */
+    .table-container-dark {
+        background: var(--card-bg);
+        border: 1px solid var(--border-glow);
+        border-radius: 24px;
+        padding: 1.8rem;
+        box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.9);
+        position: relative;
+        overflow: hidden;
+        animation: tableGlow 4s infinite alternate;
+    }
+    
+    @keyframes tableGlow {
+        0% { border-color: rgba(139, 92, 246, 0.2); }
+        100% { border-color: rgba(139, 92, 246, 0.5); }
+    }
+    
+    .data-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 8px;
+    }
+    
+    .data-table th {
+        color: #8b5cf6;
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 1rem 1.2rem;
+        background: rgba(139, 92, 246, 0.08);
+        border-radius: 12px;
+        white-space: nowrap;
+        animation: thGlow 3s infinite alternate;
+    }
+    
+    @keyframes thGlow {
+        0% { background: rgba(139, 92, 246, 0.08); }
+        100% { background: rgba(139, 92, 246, 0.15); }
+    }
+    
+    .data-table td {
+        padding: 1.2rem;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 12px;
+        color: #fff;
+        font-weight: 500;
+        border: 1px solid transparent;
+        transition: all 0.3s;
+        animation: rowFadeIn 0.5s ease-out;
+    }
+    
+    @keyframes rowFadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .data-table tr:hover td {
+        background: rgba(139, 92, 246, 0.15);
+        border-color: rgba(139, 92, 246, 0.4);
+        transform: scale(1.01);
+        box-shadow: 0 10px 20px -10px #8b5cf6;
+    }
+    
+    .status-active {
+        background: rgba(34, 197, 94, 0.15);
+        color: #4ade80;
+        padding: 0.3rem 1rem;
+        border-radius: 30px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border: 1px solid rgba(74, 222, 128, 0.3);
+        display: inline-block;
+        animation: statusPulse 2s infinite;
+    }
+    
+    @keyframes statusPulse {
+        0%, 100% { box-shadow: 0 0 10px rgba(74, 222, 128, 0.3); }
+        50% { box-shadow: 0 0 20px rgba(74, 222, 128, 0.6); }
+    }
+    
+    /* Buttons with animations */
+    .btn-dark {
+        background: rgba(139, 92, 246, 0.1);
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        color: #fff;
+        padding: 0.5rem 1.5rem;
+        border-radius: 30px;
+        font-weight: 500;
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-dark::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.5s;
+    }
+    
+    .btn-dark:hover::before {
+        left: 100%;
+    }
+    
+    .btn-dark:hover {
+        background: rgba(139, 92, 246, 0.2);
+        border-color: #8b5cf6;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px -10px #8b5cf6;
+    }
+    
+    .btn-primary-dark {
+        background: linear-gradient(145deg, #8b5cf6, #6d3fd1);
+        border: none;
+        color: #fff;
+        padding: 0.5rem 1.5rem;
+        border-radius: 30px;
+        font-weight: 500;
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+        animation: btnGlow 2s infinite alternate;
+    }
+    
+    .btn-primary-dark::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+        animation: btnRotate 4s linear infinite;
+    }
+    
+    @keyframes btnRotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    @keyframes btnGlow {
+        0% { box-shadow: 0 10px 20px -10px #8b5cf6; }
+        100% { box-shadow: 0 15px 30px -5px #b77aff; }
+    }
+    
+    .btn-primary-dark:hover {
+        background: linear-gradient(145deg, #9f74ff, #7b4edb);
+        transform: translateY(-4px);
+        box-shadow: 0 20px 30px -10px #8b5cf6;
+    }
+    
+    /* Loading spinner with animation */
+    .spinner-dark {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(139, 92, 246, 0.2);
+        border-top-color: #8b5cf6;
+        border-right-color: #3b82f6;
+        border-bottom-color: #ec4899;
+        border-radius: 50%;
+        animation: cosmicSpin 1s linear infinite;
+        margin: 0 auto;
+        box-shadow: 0 0 30px #8b5cf6;
+    }
+    
+    @keyframes cosmicSpin {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Scrollbar */
+    .table-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: #8b5cf6 #1a1240;
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    
+    .table-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .table-scroll::-webkit-scrollbar-track {
+        background: #1a1240;
+        border-radius: 10px;
+    }
+    
+    .table-scroll::-webkit-scrollbar-thumb {
+        background: #8b5cf6;
+        border-radius: 10px;
+        animation: scrollGlow 2s infinite alternate;
+    }
+    
+    @keyframes scrollGlow {
+        0% { background: #8b5cf6; }
+        100% { background: #b77aff; box-shadow: 0 0 15px #8b5cf6; }
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .dashboard-dark { padding: 1rem; }
+        .metric-value-dark { font-size: 2rem; }
+        .power-value { font-size: 2.5rem; }
+    }
+
+    /* Export dropdown styles */
+    .export-dropdown {
+        background: var(--card-bg);
+        border: 1px solid var(--border-glow);
+        border-radius: 16px;
+        padding: 0.5rem;
+        min-width: 180px;
+    }
+    
+    .export-dropdown .dropdown-item {
+        color: var(--text-primary);
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        transition: all 0.2s;
+    }
+    
+    .export-dropdown .dropdown-item:hover {
+        background: rgba(139, 92, 246, 0.2);
+        color: white;
+    }
+    
+    .export-dropdown .dropdown-item i {
+        width: 20px;
+        margin-right: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Floating particles -->
+<div class="particle" style="top: 20%; left: 10%; animation-delay: 0s;"></div>
+<div class="particle" style="top: 60%; left: 80%; animation-delay: 3s;"></div>
+<div class="particle" style="top: 80%; left: 30%; animation-delay: 6s;"></div>
+<div class="particle" style="top: 40%; left: 70%; animation-delay: 9s;"></div>
+<div class="nebula"></div>
+
+<div class="dashboard-dark">
+    <!-- Animated Header -->
+    <div class="dark-header">
+        <div class="row align-items-center position-relative" style="z-index: 2;">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+                    <div class="live-badge-dark">
+                        <span class="live-dot-dark"></span>
+                        <span class="fw-semibold" style="color: #ef4444;">LIVE STREAM</span>
+                    </div>
+                    
+                    <div class="stat-badge">
+                        <i class="fas fa-map-pin" style="color: #8b5cf6;"></i>
+                        <span>Jharkhand AMD Site · Array Alpha</span>
+                    </div>
+                    
+                    <div class="stat-badge">
+                        <i class="fas fa-microchip" style="color: #8b5cf6;"></i>
+                        <span>Biofilm Gen 4.0</span>
+                    </div>
+                </div>
+                
+                <h1 class="display-4 fw-bold mb-3" style="color: #fff;">
+                    Control Room 
+                    <span style="color: #8b5cf6; animation: textGlow 2s infinite alternate;">Dashboard</span>
+                </h1>
+                
+                <div class="d-flex gap-4">
+                    <div>
+                        <div class="text-secondary" style="color: #8b8bb0;">Uptime</div>
+                        <div class="fs-4 fw-semibold text-white">28d 14h 23m</div>
+                    </div>
+                    <div>
+                        <div class="text-secondary" style="color: #8b8bb0;">Data Points</div>
+                        <div class="fs-4 fw-semibold text-white">1.4M</div>
+                    </div>
+                    <div>
+                        <div class="text-secondary" style="color: #8b8bb0;">Last Update</div>
+                        <div class="fs-4 fw-semibold text-white">2.3s ago</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="power-display">
+                    <div class="text-secondary mb-2" style="color: #8b8bb0;">TOTAL POWER</div>
+                    <div class="power-value" id="totalPower">2.84</div>
+                    <div class="text-secondary" style="color: #8b8bb0;">megawatt · hours</div>
+                    <div class="mt-3 text-success">
+                        <i class="fas fa-arrow-up me-1"></i>+12.4% vs yesterday
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Animated Metric Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-xl-3 col-lg-6">
+            <div class="metric-card-dark">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="metric-icon-dark">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <span class="metric-trend-up">
+                        <i class="fas fa-arrow-up me-1"></i>+4.8%
+                    </span>
+                </div>
+                <div class="metric-value-dark mb-1" id="voltage">0.492</div>
+                <div class="metric-label mb-3">Voltage (V) · Open Circuit</div>
+                <div class="progress-dark">
+                    <div class="progress-bar-dark" style="width: 82%;"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="text-secondary" style="color: #8b8bb0;">Min 0.442</span>
+                    <span class="text-secondary" style="color: #8b8bb0;">Max 0.512</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-lg-6">
+            <div class="metric-card-dark">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="metric-icon-dark">
+                        <i class="fas fa-plug"></i>
+                    </div>
+                    <span class="metric-trend-up">
+                        <i class="fas fa-arrow-up me-1"></i>+2.3%
+                    </span>
+                </div>
+                <div class="metric-value-dark mb-1" id="current">2.18</div>
+                <div class="metric-label mb-3">Current (mA) · Power: 1.07 mW</div>
+                <div class="progress-dark">
+                    <div class="progress-bar-dark" style="width: 68%;"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="text-secondary" style="color: #8b8bb0;">Min 1.82</span>
+                    <span class="text-secondary" style="color: #8b8bb0;">Max 2.42</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-lg-6">
+            <div class="metric-card-dark">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="metric-icon-dark">
+                        <i class="fas fa-flask"></i>
+                    </div>
+                    <span class="metric-trend-down">
+                        <i class="fas fa-arrow-down me-1"></i>-0.2
+                    </span>
+                </div>
+                <div class="metric-value-dark mb-1" id="ph">5.08</div>
+                <div class="metric-label mb-3">pH Level · Target: 6.5-7.5</div>
+                <div class="progress-dark">
+                    <div class="progress-bar-dark" style="width: 42%; background: linear-gradient(90deg, #f59e0b, #fbbf24);"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="text-secondary" style="color: #8b8bb0;">Min 4.82</span>
+                    <span class="text-secondary" style="color: #8b8bb0;">Max 5.42</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-lg-6">
+            <div class="metric-card-dark">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="metric-icon-dark">
+                        <i class="fas fa-bacteria"></i>
+                    </div>
+                    <span class="metric-trend-up">
+                        <i class="fas fa-arrow-up me-1"></i>+12.4%
+                    </span>
+                </div>
+                <div class="metric-value-dark mb-1" id="biofilm">3.2e<sup>8</sup></div>
+                <div class="metric-label mb-3">Biofilm (CFU/mL) · Shewanella spp.</div>
+                <div class="progress-dark">
+                    <div class="progress-bar-dark" style="width: 92%;"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="text-secondary" style="color: #8b8bb0;">Min 2.8e8</span>
+                    <span class="text-secondary" style="color: #8b8bb0;">Max 3.4e8</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Animated Charts Row -->
+    <div class="row g-4 mb-5">
+        <div class="col-xl-8">
+            <div class="chart-container-dark">
+                <div class="chart-title-dark">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Voltage Trend · 30 Minute Rolling</span>
+                    <span class="badge-time">LIVE</span>
+                </div>
+                <div style="position: relative; height: 300px;">
+                    <canvas id="voltageChart"></canvas>
+                </div>
+                <div class="row g-3 mt-4">
+                    <div class="col-4">
+                        <div class="stat-mini">
+                            <div class="stat-mini-label">Minimum</div>
+                            <div class="stat-mini-value" id="minVoltage">0.442V</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stat-mini">
+                            <div class="stat-mini-label">Maximum</div>
+                            <div class="stat-mini-value" id="maxVoltage">0.512V</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stat-mini">
+                            <div class="stat-mini-label">Average</div>
+                            <div class="stat-mini-value" id="avgVoltage">0.482V</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4">
+            <div class="chart-container-dark h-100">
+                <div class="chart-title-dark">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Metal Removal</span>
+                </div>
+                <div style="position: relative; height: 250px;">
+                    <canvas id="metalsChart"></canvas>
+                </div>
+                
+                <div class="mt-4">
+                    <div class="metal-stat">
+                        <div class="metal-color" style="background: #8b5cf6;"></div>
+                        <span class="metal-name">Iron (Fe²⁺)</span>
+                        <span class="metal-percent">82%</span>
+                    </div>
+                    <div class="progress-dark mb-3">
+                        <div class="progress-bar-dark" style="width: 82%;"></div>
+                    </div>
+                    
+                    <div class="metal-stat">
+                        <div class="metal-color" style="background: #3b82f6;"></div>
+                        <span class="metal-name">Copper (Cu²⁺)</span>
+                        <span class="metal-percent">76%</span>
+                    </div>
+                    <div class="progress-dark mb-3">
+                        <div class="progress-bar-dark" style="width: 76%;"></div>
+                    </div>
+                    
+                    <div class="metal-stat">
+                        <div class="metal-color" style="background: #10b981;"></div>
+                        <span class="metal-name">Manganese (Mn²⁺)</span>
+                        <span class="metal-percent">68%</span>
+                    </div>
+                    <div class="progress-dark mb-3">
+                        <div class="progress-bar-dark" style="width: 68%;"></div>
+                    </div>
+                    
+                    <div class="metal-stat">
+                        <div class="metal-color" style="background: #ec4899;"></div>
+                        <span class="metal-name">Sulfate (SO₄²⁻)</span>
+                        <span class="metal-percent">71%</span>
+                    </div>
+                    <div class="progress-dark">
+                        <div class="progress-bar-dark" style="width: 71%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Environmental Row -->
+    <div class="row g-4 mb-5">
+        <div class="col-xl-3 col-lg-6">
+            <div class="chart-container-dark">
+                <div class="chart-title-dark">
+                    <i class="fas fa-temperature-high"></i>
+                    <span>Temperature</span>
+                </div>
+                <div style="position: relative; height: 120px;">
+                    <canvas id="tempChart"></canvas>
+                </div>
+                <div class="text-center mt-3">
+                    <span class="fs-2 fw-bold text-white" id="temp">24.6</span>
+                    <span class="text-secondary" style="color: #8b8bb0;">°C</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-lg-6">
+            <div class="chart-container-dark">
+                <div class="chart-title-dark">
+                    <i class="fas fa-droplet"></i>
+                    <span>Dissolved O₂</span>
+                </div>
+                <div style="position: relative; height: 120px;">
+                    <canvas id="doChart"></canvas>
+                </div>
+                <div class="text-center mt-3">
+                    <span class="fs-2 fw-bold text-white" id="do">4.2</span>
+                    <span class="text-secondary" style="color: #8b8bb0;">mg/L</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-lg-6">
+            <div class="chart-container-dark">
+                <div class="chart-title-dark">
+                    <i class="fas fa-satellite-dish"></i>
+                    <span>LoRa Signal</span>
+                </div>
+                <div style="position: relative; height: 120px;">
+                    <canvas id="snrChart"></canvas>
+                </div>
+                <div class="text-center mt-3">
+                    <span class="fs-2 fw-bold text-white" id="snr">-12.4</span>
+                    <span class="text-secondary" style="color: #8b8bb0;">dB</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-lg-6">
+            <div class="chart-container-dark">
+                <div class="chart-title-dark">
+                    <i class="fas fa-battery-three-quarters"></i>
+                    <span>Efficiency</span>
+                </div>
+                <div style="position: relative; height: 120px;">
+                    <canvas id="efficiencyChart"></canvas>
+                </div>
+                <div class="text-center mt-3">
+                    <span class="fs-2 fw-bold text-white" id="efficiency">78</span>
+                    <span class="text-secondary" style="color: #8b8bb0;">%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Export Section - NEW -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="chart-container-dark">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="chart-title-dark mb-0">
+                        <i class="fas fa-download"></i>
+                        <span>Export Data</span>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <a href="{{ url_for('dashboard.export_report') }}?format=csv" class="btn btn-primary-dark w-100" style="background: linear-gradient(145deg, #10b981, #059669);">
+                            <i class="fas fa-file-csv me-2"></i>Export as CSV
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('dashboard.export_report') }}?format=excel" class="btn btn-primary-dark w-100" style="background: linear-gradient(145deg, #3b82f6, #2563eb);">
+                            <i class="fas fa-file-excel me-2"></i>Export as Excel
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('dashboard.export_report') }}?format=json" class="btn btn-primary-dark w-100" style="background: linear-gradient(145deg, #8b5cf6, #6d3fd1);">
+                            <i class="fas fa-file-code me-2"></i>Export as JSON
+                        </a>
+                    </div>
+                </div>
+                <p class="text-secondary small mt-3 mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Export all sensor data for external analysis. Files include timestamp, voltage, current, pH, metal concentrations, and biofilm status.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Animated Data Table -->
+    <div class="table-container-dark">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+            <div class="chart-title-dark mb-0">
+                <i class="fas fa-table"></i>
+                <span>Real-time Sensor Data</span>
+                <span class="badge-time ms-3">UPDATING</span>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn-dark" id="pauseBtn">
+                    <i class="fas fa-pause me-2"></i>Pause
+                </button>
+                
+                <!-- Updated Export Dropdown -->
+                <div class="dropdown">
+                    <button class="btn-primary-dark dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-download me-2"></i>Export
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end export-dropdown">
+                        <li><a class="dropdown-item" href="{{ url_for('dashboard.export_report') }}?format=csv"><i class="fas fa-file-csv" style="color: #10b981;"></i> CSV Format</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('dashboard.export_report') }}?format=excel"><i class="fas fa-file-excel" style="color: #3b82f6;"></i> Excel Format</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('dashboard.export_report') }}?format=json"><i class="fas fa-file-code" style="color: #8b5cf6;"></i> JSON Format</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="table-scroll" id="infiniteScrollContainer">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Voltage (V)</th>
+                        <th>Current (mA)</th>
+                        <th>pH</th>
+                        <th>ORP (mV)</th>
+                        <th>Fe²⁺ (mg/L)</th>
+                        <th>Cu²⁺ (mg/L)</th>
+                        <th>COD (mg/L)</th>
+                        <th>Biofilm</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+            
+            <div class="text-center py-4" id="loadingIndicator">
+                <div class="spinner-dark mb-2"></div>
+                <div class="text-secondary" style="color: #8b8bb0;">Loading more data...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ===== CHARTS =====
+    
+    // Generate realistic data
+    const generateData = (points, base, variation, trend = 0) => {
+        return Array(points).fill().map((_, i) => {
+            return base + (Math.random() * variation * 2 - variation) + (trend * i / points);
+        });
+    };
+    
+    // Voltage Chart
+    const voltageCtx = document.getElementById('voltageChart').getContext('2d');
+    const voltageData = generateData(60, 0.482, 0.02);
+    
+    new Chart(voltageCtx, {
+        type: 'line',
+        data: {
+            labels: Array(60).fill(''),
+            datasets: [{
+                data: voltageData,
+                borderColor: '#8b5cf6',
+                backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.3,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { 
+                legend: { display: false },
+                tooltip: { enabled: true, mode: 'index' }
+            },
+            scales: {
+                x: { display: false },
+                y: { 
+                    grid: { color: 'rgba(139, 92, 246, 0.1)' },
+                    ticks: { 
+                        color: '#8b8bb0',
+                        callback: v => v + 'V'
+                    },
+                    min: 0.42,
+                    max: 0.52
+                }
+            }
+        }
+    });
+    
+    // Metals Chart
+    const metalsCtx = document.getElementById('metalsChart').getContext('2d');
+    new Chart(metalsCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Iron', 'Copper', 'Manganese', 'Sulfate'],
+            datasets: [{
+                data: [82, 76, 68, 71],
+                backgroundColor: ['#8b5cf6', '#3b82f6', '#10b981', '#ec4899'],
+                borderWidth: 0,
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: { 
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => `${ctx.raw}% removal` } }
+            }
+        }
+    });
+    
+    // Small charts
+    const tempCtx = document.getElementById('tempChart').getContext('2d');
+    new Chart(tempCtx, {
+        type: 'line',
+        data: {
+            labels: Array(30).fill(''),
+            datasets: [{
+                data: generateData(30, 24.6, 0.5),
+                borderColor: '#f59e0b',
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { display: false }, y: { display: false, min: 23, max: 26 } }
+        }
+    });
+    
+    const doCtx = document.getElementById('doChart').getContext('2d');
+    new Chart(doCtx, {
+        type: 'line',
+        data: {
+            labels: Array(30).fill(''),
+            datasets: [{
+                data: generateData(30, 4.2, 0.2),
+                borderColor: '#3b82f6',
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { display: false }, y: { display: false, min: 3.5, max: 4.8 } }
+        }
+    });
+    
+    const snrCtx = document.getElementById('snrChart').getContext('2d');
+    new Chart(snrCtx, {
+        type: 'line',
+        data: {
+            labels: Array(30).fill(''),
+            datasets: [{
+                data: generateData(30, -12.4, 0.8),
+                borderColor: '#8b5cf6',
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { 
+                x: { display: false }, 
+                y: { display: false, min: -15, max: -10, reverse: true }
+            }
+        }
+    });
+    
+    const effCtx = document.getElementById('efficiencyChart').getContext('2d');
+    new Chart(effCtx, {
+        type: 'line',
+        data: {
+            labels: Array(30).fill(''),
+            datasets: [{
+                data: generateData(30, 78, 3),
+                borderColor: '#10b981',
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { display: false }, y: { display: false, min: 72, max: 84 } }
+        }
+    });
+    
+    // ===== INFINITE TABLE =====
+    const tableBody = document.getElementById('tableBody');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    let isLoading = false;
+    let rowCount = 0;
+    let paused = false;
+    
+function generateRow() {
+    // Create timestamp in India time (UTC+5:30)
+    const now = new Date();
+    
+    // Convert to India time (UTC+5:30)
+    // India is 5 hours 30 minutes ahead of UTC
+    const indiaOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
+    
+    // Get UTC time in milliseconds
+    const utcTime = now.getTime() + (now.getTimezoneOffset() * 60 * 1000);
+    
+    // Add India offset
+    const indiaTime = new Date(utcTime + indiaOffset);
+    
+    // Subtract seconds based on rowCount to simulate history
+    indiaTime.setSeconds(indiaTime.getSeconds() - rowCount * 2);
+    
+    // Format: YYYY-MM-DD HH:MM:SS
+    const year = indiaTime.getFullYear();
+    const month = String(indiaTime.getMonth() + 1).padStart(2, '0');
+    const day = String(indiaTime.getDate()).padStart(2, '0');
+    const hours = String(indiaTime.getHours()).padStart(2, '0');
+    const minutes = String(indiaTime.getMinutes()).padStart(2, '0');
+    const seconds = String(indiaTime.getSeconds()).padStart(2, '0');
+    
+    const timestamp = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    
+    // Rest of your function remains the same
+    const voltage = (0.45 + Math.random() * 0.08).toFixed(3);
+    const current = (1.8 + Math.random() * 0.8).toFixed(2);
+    const ph = (4.8 + Math.random() * 0.8).toFixed(2);
+    const orp = (100 + Math.random() * 50).toFixed(0);
+    const fe = (18 + Math.random() * 10).toFixed(1);
+    const cu = (6 + Math.random() * 5).toFixed(1);
+    const cod = (120 + Math.random() * 40).toFixed(0);
+    const biofilm = (2.5 + Math.random() * 1).toFixed(1);
+    
+    return `<tr>
+        <td>${timestamp}</td>
+        <td class="fw-bold" style="color: #8b5cf6;">${voltage}</td>
+        <td>${current}</td>
+        <td>${ph}</td>
+        <td>${orp}</td>
+        <td>${fe}</td>
+        <td>${cu}</td>
+        <td>${cod}</td>
+        <td>${biofilm}e<sup>8</sup></td>
+        <td><span class="status-active">ACTIVE</span></td>
+    </tr>`;
+}
+    // Initial rows
+    for (let i = 0; i < 25; i++) {
+        tableBody.innerHTML += generateRow();
+        rowCount++;
+    }
+    
+    // Pause button
+    document.getElementById('pauseBtn').addEventListener('click', function() {
+        paused = !paused;
+        this.innerHTML = paused ? 
+            '<i class="fas fa-play me-2"></i>Resume' : 
+            '<i class="fas fa-pause me-2"></i>Pause';
+    });
+    
+    // Infinite scroll
+    document.getElementById('infiniteScrollContainer').addEventListener('scroll', function() {
+        if (paused) return;
+        
+        if (this.scrollTop + this.clientHeight >= this.scrollHeight - 150 && !isLoading) {
+            isLoading = true;
+            loadingIndicator.style.display = 'block';
+            
+            setTimeout(() => {
+                for (let i = 0; i < 10; i++) {
+                    tableBody.innerHTML += generateRow();
+                    rowCount++;
+                }
+                isLoading = false;
+                loadingIndicator.style.display = 'block';
+            }, 500);
+        }
+    });
+    
+    // Live updates
+// Live updates
+setInterval(() => {
+    if (paused) return;
+    
+    // Update metrics (your existing code)
+    document.getElementById('voltage').innerText = (0.45 + Math.random() * 0.08).toFixed(3);
+    document.getElementById('current').innerText = (1.8 + Math.random() * 0.8).toFixed(2);
+    document.getElementById('ph').innerText = (4.8 + Math.random() * 0.8).toFixed(2);
+    document.getElementById('biofilm').innerHTML = (2.5 + Math.random() * 1).toFixed(1) + 'e<sup>8</sup>';
+    document.getElementById('totalPower').innerText = (2.5 + Math.random() * 0.5).toFixed(2);
+    document.getElementById('temp').innerText = (24 + Math.random() * 2).toFixed(1);
+    document.getElementById('do').innerText = (3.8 + Math.random() * 0.8).toFixed(1);
+    document.getElementById('snr').innerText = (-13 + Math.random() * 2).toFixed(1);
+    document.getElementById('efficiency').innerText = (75 + Math.random() * 6).toFixed(0);
+    
+    document.getElementById('minVoltage').innerHTML = (0.43 + Math.random() * 0.02).toFixed(3) + 'V';
+    document.getElementById('maxVoltage').innerHTML = (0.50 + Math.random() * 0.02).toFixed(3) + 'V';
+    document.getElementById('avgVoltage').innerHTML = (0.47 + Math.random() * 0.02).toFixed(3) + 'V';
+    
+    // Update the "Last Update" time in header
+    const lastUpdate = document.getElementById('lastUpdate');
+    if (lastUpdate) {
+        const now = new Date();
+        const utcTime = now.getTime() + (now.getTimezoneOffset() * 60 * 1000);
+        const indiaOffset = 5.5 * 60 * 60 * 1000;
+        const indiaTime = new Date(utcTime + indiaOffset);
+        
+        const hours = String(indiaTime.getHours()).padStart(2, '0');
+        const minutes = String(indiaTime.getMinutes()).padStart(2, '0');
+        const seconds = String(indiaTime.getSeconds()).padStart(2, '0');
+        
+        lastUpdate.textContent = `${hours}:${minutes}:${seconds}`;
+    }
+    
+    // Update the first row's timestamp to show current India time
+    const firstRow = document.querySelector('#tableBody tr:first-child td:first-child');
+    if (firstRow) {
+        const now = new Date();
+        const utcTime = now.getTime() + (now.getTimezoneOffset() * 60 * 1000);
+        const indiaOffset = 5.5 * 60 * 60 * 1000;
+        const indiaTime = new Date(utcTime + indiaOffset);
+        
+        const year = indiaTime.getFullYear();
+        const month = String(indiaTime.getMonth() + 1).padStart(2, '0');
+        const day = String(indiaTime.getDate()).padStart(2, '0');
+        const hours = String(indiaTime.getHours()).padStart(2, '0');
+        const minutes = String(indiaTime.getMinutes()).padStart(2, '0');
+        const seconds = String(indiaTime.getSeconds()).padStart(2, '0');
+        
+        firstRow.textContent = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+}, 3000);
+    // Add click handlers for export buttons (optional, for notifications)
+    document.querySelectorAll('a[href*="export_report"]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            const format = this.href.split('format=')[1];
+            showNotification(`Downloading ${format.toUpperCase()} export...`, 'info');
+        });
+    });
+});
+
+// Notification function
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.style.position = 'fixed';
+    notification.style.top = '20px';
+    notification.style.right = '20px';
+    notification.style.zIndex = '9999';
+    notification.style.padding = '1rem 2rem';
+    notification.style.borderRadius = '30px';
+    notification.style.background = type === 'success' ? 'rgba(16, 185, 129, 0.9)' : 
+                                     type === 'error' ? 'rgba(239, 68, 68, 0.9)' : 
+                                     'rgba(59, 130, 246, 0.9)';
+    notification.style.color = '#fff';
+    notification.style.fontWeight = '500';
+    notification.style.backdropFilter = 'blur(10px)';
+    notification.style.boxShadow = '0 20px 40px -15px #000';
+    notification.style.animation = 'slideIn 0.3s ease-out';
+    notification.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'} me-2"></i>${message}`;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-in';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+</script>
+
+<style>
+@keyframes slideIn {
+    from { transform: translateX(100px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+@keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100px); opacity: 0; }
+}
+</style>
+{% endblock %}

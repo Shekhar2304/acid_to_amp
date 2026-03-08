@@ -1,0 +1,775 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics Dashboard - Acid-to-Amp Bioelectric Intelligence{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== DARK THEME FOR CHARTS ===== */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    
+    :root {
+        --glow-purple: #b77aff;
+        --glow-blue: #6a8cff;
+        --glow-cyan: #44e0c0;
+        --glow-pink: #ff7ad0;
+        --dark-bg: #030014;
+        --card-bg: #0b0720;
+        --border-glow: rgba(183, 122, 255, 0.3);
+        --text-primary: #ffffff;
+        --text-secondary: #b0b0d0;
+        --accent-purple: #8b5cf6;
+        --accent-blue: #3b82f6;
+    }
+    
+    body {
+        background: var(--dark-bg);
+        font-family: 'Inter', sans-serif;
+        color: var(--text-primary);
+    }
+    
+    /* Animated background */
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+            linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+        pointer-events: none;
+        z-index: 0;
+        animation: gridMove 20s linear infinite;
+    }
+    
+    @keyframes gridMove {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(20px, 20px); }
+    }
+    
+    /* Floating particles */
+    .particle {
+        position: fixed;
+        width: 4px;
+        height: 4px;
+        background: rgba(139, 92, 246, 0.3);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 0;
+        animation: float 15s infinite ease-in-out;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translate(0, 0); opacity: 0.3; }
+        25% { transform: translate(100px, -100px); opacity: 0.6; }
+        50% { transform: translate(200px, 0); opacity: 0.3; }
+        75% { transform: translate(100px, 100px); opacity: 0.6; }
+    }
+    
+    /* Nebula effect */
+    .nebula {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 70% 30%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
+            radial-gradient(circle at 30% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 45%);
+        filter: blur(40px);
+        pointer-events: none;
+        z-index: 0;
+        animation: nebulaDrift 30s infinite alternate;
+    }
+    
+    @keyframes nebulaDrift {
+        0% { transform: scale(1) translate(0, 0); opacity: 0.5; }
+        100% { transform: scale(1.2) translate(2%, 2%); opacity: 0.8; }
+    }
+    
+    /* Page Header */
+    .analytics-header {
+        position: relative;
+        z-index: 10;
+        background: var(--card-bg);
+        border: 1px solid var(--border-glow);
+        border-radius: 30px;
+        padding: 2rem 2.5rem;
+        margin-bottom: 2.5rem;
+        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.8);
+        animation: headerGlow 4s infinite alternate;
+    }
+    
+    .analytics-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+        animation: rotate 20s linear infinite;
+    }
+    
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    @keyframes headerGlow {
+        0%, 100% { border-color: rgba(139, 92, 246, 0.3); }
+        50% { border-color: rgba(139, 92, 246, 0.8); }
+    }
+    
+    .analytics-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #fff, #b794ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    /* KPI Cards */
+    .kpi-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-glow);
+        border-radius: 24px;
+        padding: 1.8rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        animation: cardPulse 3s infinite alternate;
+    }
+    
+    .kpi-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 70%);
+        opacity: 0;
+        transition: opacity 0.5s;
+    }
+    
+    .kpi-card:hover {
+        transform: translateY(-5px);
+        border-color: #8b5cf6;
+        box-shadow: 0 20px 40px -15px #8b5cf6;
+    }
+    
+    .kpi-card:hover::before {
+        opacity: 0.3;
+    }
+    
+    .kpi-icon {
+        width: 60px;
+        height: 60px;
+        background: rgba(139, 92, 246, 0.15);
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.2rem;
+    }
+    
+    .kpi-icon i {
+        font-size: 2rem;
+        color: #8b5cf6;
+    }
+    
+    .kpi-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #fff;
+        font-family: 'JetBrains Mono', monospace;
+        margin-bottom: 0.3rem;
+    }
+    
+    .kpi-label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Chart Cards */
+    .chart-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-glow);
+        border-radius: 30px;
+        padding: 1.8rem;
+        box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.9);
+        position: relative;
+        overflow: hidden;
+        animation: cardGlow 4s infinite alternate;
+    }
+    
+    .chart-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+        filter: blur(30px);
+        pointer-events: none;
+    }
+    
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .chart-header h5 {
+        color: #fff;
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+    
+    .chart-header h5 i {
+        color: #8b5cf6;
+    }
+    
+    /* Time Range Selector */
+    .time-range-select {
+        background: rgba(139, 92, 246, 0.1);
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        color: #fff;
+        padding: 0.5rem 2rem 0.5rem 1rem;
+        border-radius: 30px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        outline: none;
+    }
+    
+    .time-range-select option {
+        background: var(--card-bg);
+        color: #fff;
+    }
+    
+    /* Progress Bar */
+    .progress-cosmic {
+        height: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        overflow: hidden;
+        margin-top: 1rem;
+    }
+    
+    .progress-bar-cosmic {
+        height: 100%;
+        background: linear-gradient(90deg, #8b5cf6, #3b82f6);
+        border-radius: 20px;
+        animation: progressShimmer 3s infinite linear;
+    }
+    
+    @keyframes progressShimmer {
+        0% { background-position: 0% 0%; }
+        100% { background-position: 200% 0%; }
+    }
+    
+    /* Badges */
+    .badge-cosmic {
+        background: rgba(139, 92, 246, 0.15);
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        color: #8b5cf6;
+        padding: 0.3rem 1rem;
+        border-radius: 30px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .analytics-header { padding: 1.5rem; }
+        .kpi-value { font-size: 2rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Floating particles -->
+<div class="particle" style="top: 20%; left: 10%; animation-delay: 0s;"></div>
+<div class="particle" style="top: 60%; left: 80%; animation-delay: 3s;"></div>
+<div class="particle" style="top: 80%; left: 30%; animation-delay: 6s;"></div>
+<div class="particle" style="top: 40%; left: 70%; animation-delay: 9s;"></div>
+<div class="nebula"></div>
+
+<div class="container-fluid px-4" style="position: relative; z-index: 10;">
+    <!-- Header -->
+    <div class="analytics-header">
+        <div class="d-flex align-items-center gap-4">
+            <div class="kpi-icon" style="width: 80px; height: 80px;">
+                <i class="fas fa-chart-line fa-3x"></i>
+            </div>
+            <div>
+                <h1 class="analytics-title mb-2">Analytics Dashboard</h1>
+                <p class="text-secondary mb-0" style="color: #b0b0d0;">Advanced MFC performance analysis & predictions · Live updates every 10s</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI Cards Row -->
+    <div class="row g-4 mb-5">
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card">
+                <div class="kpi-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <div class="kpi-value" id="totalEnergy">24.8</div>
+                <div class="kpi-label">Total Energy Today (Wh)</div>
+                <div class="progress-cosmic mt-3">
+                    <div class="progress-bar-cosmic" style="width: 78%;"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="text-secondary small">Target: 30 Wh</span>
+                    <span class="text-success small">+12%</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card">
+                <div class="kpi-icon">
+                    <i class="fas fa-tint"></i>
+                </div>
+                <div class="kpi-value" id="waterTreated">1,245</div>
+                <div class="kpi-label">Water Treated (L)</div>
+                <div class="progress-cosmic mt-3">
+                    <div class="progress-bar-cosmic" style="width: 62%;"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="text-secondary small">Daily: 2,000 L</span>
+                    <span class="text-warning small">62%</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card">
+                <div class="kpi-icon">
+                    <i class="fas fa-bacteria"></i>
+                </div>
+                <div class="kpi-value" id="biofilmHealth">94<span style="font-size: 1.5rem;">%</span></div>
+                <div class="kpi-label">Biofilm Health</div>
+                <div class="progress-cosmic mt-3">
+                    <div class="progress-bar-cosmic" style="width: 94%; background: linear-gradient(90deg, #10b981, #34d399);"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="text-secondary small">Excellent</span>
+                    <span class="text-success small">Active</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card">
+                <div class="kpi-icon">
+                    <i class="fas fa-leaf"></i>
+                </div>
+                <div class="kpi-value" id="co2Offset">127</div>
+                <div class="kpi-label">CO₂ Offset (kg)</div>
+                <div class="progress-cosmic mt-3">
+                    <div class="progress-bar-cosmic" style="width: 45%; background: linear-gradient(90deg, #8b5cf6, #b77aff);"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="text-secondary small">This month</span>
+                    <span class="text-info small">+23 kg</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Charts Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-8">
+            <div class="chart-card h-100">
+                <div class="chart-header">
+                    <h5>
+                        <i class="fas fa-chart-area"></i>
+                        Power Generation
+                    </h5>
+                    <select id="timeRange" class="time-range-select">
+                        <option value="1h">Last Hour</option>
+                        <option value="6h">Last 6 Hours</option>
+                        <option value="24h" selected>Last 24 Hours</option>
+                        <option value="7d">Last 7 Days</option>
+                    </select>
+                </div>
+                <div style="position: relative; height: 300px;">
+                    <canvas id="powerChart"></canvas>
+                </div>
+                <div class="d-flex justify-content-between mt-3">
+                    <span class="badge-cosmic"><i class="fas fa-circle me-2" style="color: #8b5cf6;"></i>Current: 482 mV</span>
+                    <span class="badge-cosmic"><i class="fas fa-circle me-2" style="color: #3b82f6;"></i>Average: 465 mV</span>
+                    <span class="badge-cosmic"><i class="fas fa-circle me-2" style="color: #10b981;"></i>Peak: 512 mV</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4">
+            <div class="chart-card h-100">
+                <div class="chart-header">
+                    <h5>
+                        <i class="fas fa-poll"></i>
+                        Heavy Metals Reduction
+                    </h5>
+                </div>
+                <div style="position: relative; height: 250px;">
+                    <canvas id="metalsChart"></canvas>
+                </div>
+                <div class="mt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-secondary">Iron Removal</span>
+                        <span class="text-white fw-bold">82%</span>
+                    </div>
+                    <div class="progress-cosmic mb-3">
+                        <div class="progress-bar-cosmic" style="width: 82%;"></div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-secondary">Copper Removal</span>
+                        <span class="text-white fw-bold">76%</span>
+                    </div>
+                    <div class="progress-cosmic mb-3">
+                        <div class="progress-bar-cosmic" style="width: 76%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary Charts Row -->
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5>
+                        <i class="fas fa-microscope"></i>
+                        Biofilm Health Distribution
+                    </h5>
+                </div>
+                <div style="position: relative; height: 250px;">
+                    <canvas id="biofilmChart"></canvas>
+                </div>
+                <div class="row mt-4 text-center">
+                    <div class="col-4">
+                        <span class="badge-cosmic d-block mb-2">Active</span>
+                        <span class="text-white fw-bold fs-5">65%</span>
+                    </div>
+                    <div class="col-4">
+                        <span class="badge-cosmic d-block mb-2">Growing</span>
+                        <span class="text-white fw-bold fs-5">25%</span>
+                    </div>
+                    <div class="col-4">
+                        <span class="badge-cosmic d-block mb-2">Stable</span>
+                        <span class="text-white fw-bold fs-5">10%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5>
+                        <i class="fas fa-balance-scale"></i>
+                        Water Quality Index
+                    </h5>
+                    <span class="badge-cosmic">IS:10500 Standard</span>
+                </div>
+                <div style="position: relative; height: 250px;">
+                    <canvas id="qualityChart"></canvas>
+                </div>
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between text-secondary small">
+                            <span>pH: 6.8 ✓</span>
+                            <span>Turbidity: 2.1 NTU ✓</span>
+                            <span>Conductivity: 450 µS/cm ✓</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script>
+let powerChart, metalsChart, biofilmChart, qualityChart;
+let chartData = {
+    power: Array.from({length: 24}, () => Math.random() * 200 + 400),
+    labels: Array.from({length: 24}, (_, i) => `${i}:00`)
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    initAllCharts();
+    setupLiveUpdates();
+    
+    // Time range selector
+    document.getElementById('timeRange')?.addEventListener('change', function(e) {
+        updateTimeRange(e.target.value);
+    });
+});
+
+function initAllCharts() {
+    // Power Chart
+    const powerCtx = document.getElementById('powerChart')?.getContext('2d');
+    if (powerCtx) {
+        powerChart = new Chart(powerCtx, {
+            type: 'line',
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    label: 'Power Output (mW)',
+                    data: chartData.power,
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#8b5cf6',
+                    pointBorderColor: '#fff',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { mode: 'index', intersect: false }
+                },
+                scales: {
+                    y: {
+                        grid: { color: 'rgba(139, 92, 246, 0.1)' },
+                        ticks: { color: '#b0b0d0' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#b0b0d0' }
+                    }
+                }
+            }
+        });
+    }
+
+    // Metals Chart
+    const metalsCtx = document.getElementById('metalsChart')?.getContext('2d');
+    if (metalsCtx) {
+        metalsChart = new Chart(metalsCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Iron (mg/L)', 'Copper (mg/L)', 'Aluminum (mg/L)'],
+                datasets: [
+                    {
+                        label: 'Influent',
+                        data: [124, 48, 82],
+                        backgroundColor: '#ef4444',
+                        borderRadius: 8
+                    },
+                    {
+                        label: 'Effluent',
+                        data: [22, 12, 18],
+                        backgroundColor: '#10b981',
+                        borderRadius: 8
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { 
+                        labels: { color: '#b0b0d0' }
+                    }
+                },
+                scales: {
+                    y: {
+                        grid: { color: 'rgba(139, 92, 246, 0.1)' },
+                        ticks: { color: '#b0b0d0' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#b0b0d0' }
+                    }
+                }
+            }
+        });
+    }
+
+    // Biofilm Chart
+    const biofilmCtx = document.getElementById('biofilmChart')?.getContext('2d');
+    if (biofilmCtx) {
+        biofilmChart = new Chart(biofilmCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Active', 'Growing', 'Stable'],
+                datasets: [{
+                    data: [65, 25, 10],
+                    backgroundColor: ['#10b981', '#f59e0b', '#8b5cf6'],
+                    borderWidth: 0,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: { 
+                        position: 'bottom',
+                        labels: { color: '#b0b0d0' }
+                    }
+                }
+            }
+        });
+    }
+
+    // Quality Chart
+    const qualityCtx = document.getElementById('qualityChart')?.getContext('2d');
+    if (qualityCtx) {
+        qualityChart = new Chart(qualityCtx, {
+            type: 'radar',
+            data: {
+                labels: ['pH', 'Turbidity', 'Conductivity', 'ORP', 'DO'],
+                datasets: [{
+                    label: 'Water Quality Index',
+                    data: [92, 88, 78, 85, 91],
+                    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                    borderColor: '#8b5cf6',
+                    pointBackgroundColor: '#8b5cf6',
+                    pointBorderColor: '#fff',
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    r: {
+                        grid: { color: 'rgba(139, 92, 246, 0.2)' },
+                        pointLabels: { color: '#b0b0d0' },
+                        ticks: { 
+                            color: '#b0b0d0',
+                            backdropColor: 'transparent'
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+function setupLiveUpdates() {
+    const socket = io();
+    
+    socket.on('sensor_update', function(data) {
+        // Update KPI cards
+        document.getElementById('totalEnergy').innerText = (Math.random() * 10 + 20).toFixed(1);
+        
+        // Update power chart
+        if (powerChart) {
+            const newValue = data.voltage * data.current * 1000;
+            powerChart.data.datasets[0].data.push(newValue);
+            powerChart.data.labels.push(new Date().toLocaleTimeString());
+            
+            if (powerChart.data.labels.length > 24) {
+                powerChart.data.datasets[0].data.shift();
+                powerChart.data.labels.shift();
+            }
+            
+            powerChart.update('none');
+        }
+    });
+}
+
+function updateTimeRange(range) {
+    // Generate new data based on selected range
+    let points = 24;
+    let newLabels = [];
+    
+    switch(range) {
+        case '1h':
+            points = 12;
+            newLabels = Array.from({length: 12}, (_, i) => `${i*5}m`);
+            break;
+        case '6h':
+            points = 18;
+            newLabels = Array.from({length: 18}, (_, i) => `${i*20}m`);
+            break;
+        case '24h':
+            points = 24;
+            newLabels = Array.from({length: 24}, (_, i) => `${i}:00`);
+            break;
+        case '7d':
+            points = 7;
+            newLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            break;
+    }
+    
+    if (powerChart) {
+        powerChart.data.labels = newLabels;
+        powerChart.data.datasets[0].data = Array.from({length: points}, 
+            () => Math.random() * 200 + 400);
+        powerChart.update();
+    }
+}
+
+// Add notification function for exports
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.style.position = 'fixed';
+    notification.style.top = '20px';
+    notification.style.right = '20px';
+    notification.style.zIndex = '9999';
+    notification.style.padding = '1rem 2rem';
+    notification.style.borderRadius = '30px';
+    notification.style.background = type === 'success' ? 'rgba(16, 185, 129, 0.9)' : 
+                                     type === 'error' ? 'rgba(239, 68, 68, 0.9)' : 
+                                     'rgba(59, 130, 246, 0.9)';
+    notification.style.color = '#fff';
+    notification.style.fontWeight = '500';
+    notification.style.backdropFilter = 'blur(10px)';
+    notification.style.boxShadow = '0 20px 40px -15px #000';
+    notification.style.animation = 'slideIn 0.3s ease-out';
+    notification.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'} me-2"></i>${message}`;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-in';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+</script>
+
+<style>
+@keyframes slideIn {
+    from { transform: translateX(100px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+@keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100px); opacity: 0; }
+}
+</style>
+{% endblock %}

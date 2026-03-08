@@ -1,0 +1,1473 @@
+{% extends "base.html" %}
+
+{% block title %}System Status - Acid-to-Amp Bioelectric Intelligence{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== COSMIC SYSTEM THEME ===== */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    
+    :root {
+        --glow-purple: #b77aff;
+        --glow-blue: #6a8cff;
+        --glow-cyan: #44e0c0;
+        --glow-pink: #ff7ad0;
+        --dark-bg: #030014;
+        --card-bg: #0b0720;
+        --border-glow: rgba(183, 122, 255, 0.3);
+        --text-primary: #ffffff;
+        --text-secondary: #b0b0d0;
+        --accent-purple: #8b5cf6;
+        --accent-blue: #3b82f6;
+        --accent-green: #10b981;
+        --accent-red: #ef4444;
+        --accent-yellow: #f59e0b;
+    }
+    
+    body {
+        background: var(--dark-bg);
+        font-family: 'Inter', sans-serif;
+        position: relative;
+        overflow-x: hidden;
+        color: var(--text-primary);
+    }
+    
+    /* Animated background grid */
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+            linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+        pointer-events: none;
+        z-index: 0;
+        animation: gridMove 20s linear infinite;
+    }
+    
+    @keyframes gridMove {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(20px, 20px); }
+    }
+    
+    /* Floating particles */
+    .particle {
+        position: fixed;
+        width: 4px;
+        height: 4px;
+        background: rgba(139, 92, 246, 0.3);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 0;
+        animation: float 15s infinite ease-in-out;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translate(0, 0); opacity: 0.3; }
+        25% { transform: translate(100px, -100px); opacity: 0.6; }
+        50% { transform: translate(200px, 0); opacity: 0.3; }
+        75% { transform: translate(100px, 100px); opacity: 0.6; }
+    }
+    
+    /* Nebula clouds */
+    .nebula {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 70% 30%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
+            radial-gradient(circle at 30% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 45%);
+        filter: blur(40px);
+        pointer-events: none;
+        z-index: 0;
+        animation: nebulaDrift 30s infinite alternate;
+    }
+    
+    @keyframes nebulaDrift {
+        0% { transform: scale(1) translate(0, 0); opacity: 0.5; }
+        100% { transform: scale(1.2) translate(2%, 2%); opacity: 0.8; }
+    }
+    
+    /* Main container */
+    .system-cosmic {
+        position: relative;
+        z-index: 10;
+        padding: 2rem 1.5rem;
+    }
+    
+    /* Header */
+    .system-header {
+        background: var(--card-bg);
+        border: 1px solid var(--border-glow);
+        border-radius: 30px;
+        padding: 2.5rem 3rem;
+        margin-bottom: 3rem;
+        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.8);
+        position: relative;
+        overflow: hidden;
+        animation: headerGlow 4s infinite alternate;
+    }
+    
+    .system-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+        animation: rotate 20s linear infinite;
+    }
+    
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    @keyframes headerGlow {
+        0%, 100% { border-color: rgba(139, 92, 246, 0.3); }
+        50% { border-color: rgba(139, 92, 246, 0.8); }
+    }
+    
+    .system-title {
+        font-size: 3rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #fff, #b794ff, #6a8cff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+        animation: titleGlow 3s infinite alternate;
+    }
+    
+    @keyframes titleGlow {
+        0% { text-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
+        100% { text-shadow: 0 0 40px rgba(139, 92, 246, 0.8); }
+    }
+    
+    .system-subtitle {
+        color: var(--text-secondary);
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    /* Status Cards */
+    .status-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-glow);
+        border-radius: 24px;
+        padding: 1.8rem;
+        height: 100%;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        animation: cardFloat 3s infinite alternate;
+    }
+    
+    .status-card:hover {
+        transform: translateY(-5px);
+        border-color: #8b5cf6;
+        box-shadow: 0 20px 40px -15px #8b5cf6;
+    }
+    
+    .status-card.online {
+        background: linear-gradient(145deg, #0b1a2e, #0e0930);
+        border-color: #10b981;
+    }
+    
+    .status-card.warning {
+        background: linear-gradient(145deg, #2e1f0b, #0e0930);
+        border-color: #f59e0b;
+    }
+    
+    .status-card i {
+        filter: drop-shadow(0 0 15px currentColor);
+    }
+    
+    .status-value {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #fff;
+        font-family: 'JetBrains Mono', monospace;
+        margin: 0.5rem 0;
+        line-height: 1.2;
+    }
+    
+    .status-label {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Chart Container - OPTIMIZED */
+    .chart-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-glow);
+        border-radius: 30px;
+        padding: 1.5rem;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .chart-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+        filter: blur(30px);
+        pointer-events: none;
+    }
+    
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .chart-header h5 {
+        color: #fff;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+    
+    .chart-header h5 i {
+        color: #8b5cf6;
+    }
+    
+    /* Chart Legend */
+    .chart-legend {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+    
+    .legend-color {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+    }
+    
+    /* Chart Container - FIXED HEIGHT */
+    .chart-wrapper {
+        position: relative;
+        height: 200px; /* Fixed height - no extra space */
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Hardware Controls */
+    .controls-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-glow);
+        border-radius: 30px;
+        padding: 1.5rem;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .control-group {
+        margin-bottom: 1.5rem;
+        padding: 1.2rem;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 20px;
+        border: 1px solid rgba(139, 92, 246, 0.1);
+        transition: all 0.3s;
+    }
+    
+    .control-group:hover {
+        border-color: rgba(139, 92, 246, 0.4);
+        background: rgba(139, 92, 246, 0.05);
+    }
+    
+    .control-title {
+        color: #fff;
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .control-title i {
+        color: #8b5cf6;
+    }
+    
+    /* Toggle Switch */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 52px;
+        height: 26px;
+        margin-right: 0.8rem;
+    }
+    
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(255, 255, 255, 0.1);
+        transition: .3s;
+        border-radius: 30px;
+        border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+    
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 4px;
+        bottom: 3px;
+        background-color: #8b5cf6;
+        transition: .3s;
+        border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+        background: linear-gradient(145deg, #8b5cf6, #6d3fd1);
+    }
+    
+    input:checked + .slider:before {
+        transform: translateX(24px);
+        background-color: white;
+    }
+    
+    /* Range Slider */
+    .range-slider {
+        width: 100%;
+        margin: 0.8rem 0;
+    }
+    
+    .range-slider input {
+        width: 100%;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        outline: none;
+        -webkit-appearance: none;
+    }
+    
+    .range-slider input::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 16px;
+        height: 16px;
+        background: #8b5cf6;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 0 15px #8b5cf6;
+    }
+    
+    .value-badge {
+        background: rgba(139, 92, 246, 0.15);
+        border: 1px solid #8b5cf6;
+        color: #fff;
+        padding: 0.2rem 0.8rem;
+        border-radius: 30px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        min-width: 50px;
+        text-align: center;
+    }
+    
+    /* Emergency Stop Button */
+    .emergency-btn {
+        background: rgba(239, 68, 68, 0.1);
+        border: 2px solid #ef4444;
+        color: #ef4444;
+        padding: 1rem;
+        border-radius: 40px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        letter-spacing: 1px;
+        width: 100%;
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+        animation: emergencyPulse 2s infinite;
+    }
+    
+    .emergency-btn:hover {
+        background: #ef4444;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 20px 30px -10px #ef4444;
+    }
+    
+    @keyframes emergencyPulse {
+        0%, 100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+        50% { box-shadow: 0 0 40px rgba(239, 68, 68, 0.6); }
+    }
+    
+    /* System Metrics Grid */
+    .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.8rem;
+        margin-top: 1rem;
+    }
+    
+    .metric-item {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(139, 92, 246, 0.15);
+        border-radius: 16px;
+        padding: 0.8rem;
+        text-align: center;
+    }
+    
+    .metric-item .label {
+        color: var(--text-secondary);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        margin-bottom: 0.2rem;
+    }
+    
+    .metric-item .value {
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 600;
+        font-family: 'JetBrains Mono', monospace;
+    }
+    
+    /* Badges */
+    .badge-cosmic {
+        background: rgba(139, 92, 246, 0.15);
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        color: #8b5cf6;
+        padding: 0.2rem 0.8rem;
+        border-radius: 30px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .badge-success {
+        background: rgba(16, 185, 129, 0.15);
+        border: 1px solid #10b981;
+        color: #10b981;
+    }
+    
+    .badge-warning {
+        background: rgba(245, 158, 11, 0.15);
+        border: 1px solid #f59e0b;
+        color: #f59e0b;
+    }
+    
+    /* Alarm Panel */
+    .alarm-panel {
+        background: rgba(239, 68, 68, 0.05);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 20px;
+        padding: 0.8rem;
+        margin-top: 1rem;
+    }
+    
+    .alarm-item {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 0.6rem;
+        border-bottom: 1px solid rgba(239, 68, 68, 0.1);
+    }
+    
+    .alarm-item:last-child {
+        border-bottom: none;
+    }
+    
+    .alarm-level {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+    }
+    
+    .alarm-level.critical { background: #ef4444; box-shadow: 0 0 15px #ef4444; animation: alarmPulse 1s infinite; }
+    .alarm-level.warning { background: #f59e0b; box-shadow: 0 0 15px #f59e0b; }
+    .alarm-level.info { background: #3b82f6; box-shadow: 0 0 15px #3b82f6; }
+    
+    @keyframes alarmPulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    /* Time Range Buttons */
+    .time-range-group {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 0.5rem 0;
+    }
+    
+    .btn-time {
+        background: rgba(139, 92, 246, 0.1);
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        color: var(--text-secondary);
+        padding: 0.3rem 0.8rem;
+        border-radius: 30px;
+        font-size: 0.7rem;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .btn-time:hover {
+        background: rgba(139, 92, 246, 0.2);
+        border-color: #8b5cf6;
+        color: #fff;
+    }
+    
+    .btn-time.active {
+        background: #8b5cf6;
+        border-color: #8b5cf6;
+        color: #fff;
+    }
+    
+    /* Stat Mini Cards */
+    .stat-mini {
+        background: rgba(139, 92, 246, 0.05);
+        border-radius: 16px;
+        padding: 0.8rem;
+        text-align: center;
+    }
+    
+    .stat-mini .small {
+        color: var(--text-secondary);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+    }
+    
+    .stat-mini .fs-4 {
+        font-size: 1.2rem !important;
+        margin: 0.2rem 0;
+    }
+    
+    /* Progress Bar */
+    .progress-cosmic {
+        height: 4px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        overflow: hidden;
+        margin: 0.3rem 0;
+    }
+    
+    .progress-bar-cosmic {
+        height: 100%;
+        background: linear-gradient(90deg, #8b5cf6, #3b82f6);
+        border-radius: 20px;
+        transition: width 0.3s ease;
+    }
+    
+    /* NEW: System Metrics Footer */
+    .metrics-footer {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.5rem;
+        margin-top: 0.8rem;
+        padding-top: 0.8rem;
+        border-top: 1px solid rgba(139, 92, 246, 0.2);
+    }
+    
+    .metric-footer-item {
+        text-align: center;
+        padding: 0.3rem;
+    }
+    
+    .metric-footer-item .label {
+        color: var(--text-secondary);
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    
+    .metric-footer-item .value {
+        color: #fff;
+        font-size: 0.9rem;
+        font-weight: 600;
+        font-family: 'JetBrains Mono', monospace;
+    }
+    
+    /* NEW: Compact Info Row */
+    .compact-info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(139, 92, 246, 0.03);
+        border-radius: 16px;
+        padding: 0.5rem 1rem;
+        margin-top: 0.5rem;
+    }
+    
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .info-item i {
+        color: #8b5cf6;
+        font-size: 0.9rem;
+    }
+    
+    .info-item span {
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+    }
+    
+    .info-item strong {
+        color: #fff;
+        font-size: 0.85rem;
+        margin-left: 0.2rem;
+    }
+    
+    /* NEW: Status Indicator */
+    .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.2rem 0.6rem;
+        border-radius: 30px;
+        background: rgba(139, 92, 246, 0.1);
+        border: 1px solid rgba(139, 92, 246, 0.2);
+        font-size: 0.7rem;
+    }
+    
+    .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #10b981;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .system-header { padding: 1.5rem; }
+        .system-title { font-size: 2rem; }
+        .status-value { font-size: 1.8rem; }
+        .chart-wrapper { height: 180px; }
+        .metrics-footer { grid-template-columns: repeat(2, 1fr); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Floating particles -->
+<div class="particle" style="top: 20%; left: 10%; animation-delay: 0s;"></div>
+<div class="particle" style="top: 60%; left: 80%; animation-delay: 3s;"></div>
+<div class="particle" style="top: 80%; left: 30%; animation-delay: 6s;"></div>
+<div class="particle" style="top: 40%; left: 70%; animation-delay: 9s;"></div>
+<div class="nebula"></div>
+
+<div class="system-cosmic">
+    <!-- Header -->
+    <div class="system-header">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="system-title">
+                    <i class="fas fa-microchip me-3" style="color: #8b5cf6;"></i>
+                    System Status
+                </h1>
+                <div class="system-subtitle">
+                    <span>MFC Array Alpha · Real-time Hardware Monitoring</span>
+                    <span class="badge-cosmic badge-success ms-3">
+                        <i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i>
+                        SYSTEM ONLINE
+                    </span>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="d-flex justify-content-end">
+                    <div class="text-end">
+                        <div class="text-secondary small">UPTIME</div>
+                        <div class="fs-2 fw-bold text-white">28d 14h</div>
+                        <div class="text-success small">+99.8% reliability</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Status Cards - COMPACT -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="status-card online">
+                <div class="d-flex justify-content-between align-items-start">
+                    <i class="fas fa-circle fa-2x" style="color: #10b981;"></i>
+                    <span class="badge-cosmic badge-success">ACTIVE</span>
+                </div>
+                <div class="status-value">ONLINE</div>
+                <div class="status-label">MFC Stack #1</div>
+                <div class="metric-grid">
+                    <div class="metric-item">
+                        <div class="label">Cells</div>
+                        <div class="value">12/12</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="label">Efficiency</div>
+                        <div class="value">94%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="status-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <i class="fas fa-bolt fa-2x" style="color: #f59e0b;"></i>
+                    <span class="badge-cosmic badge-warning">PEAK</span>
+                </div>
+                <div class="status-value" id="totalPower">748</div>
+                <div class="status-label">Total Power (mW)</div>
+                <div class="metric-grid">
+                    <div class="metric-item">
+                        <div class="label">Voltage</div>
+                        <div class="value" id="voltage">482 mV</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="label">Current</div>
+                        <div class="value" id="current">2.18 mA</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="status-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <i class="fas fa-tint fa-2x" style="color: #3b82f6;"></i>
+                    <span class="badge-cosmic">FLOWING</span>
+                </div>
+                <div class="status-value" id="flowRate">2.4</div>
+                <div class="status-label">Flow Rate (L/h)</div>
+                <div class="metric-grid">
+                    <div class="metric-item">
+                        <div class="label">Inlet</div>
+                        <div class="value">2.8 L/h</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="label">Outlet</div>
+                        <div class="value">2.4 L/h</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="status-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <i class="fas fa-thermometer-half fa-2x" style="color: #ef4444;"></i>
+                    <span class="badge-cosmic">NORMAL</span>
+                </div>
+                <div class="status-value" id="temperature">28.4</div>
+                <div class="status-label">Temperature (°C)</div>
+                <div class="metric-grid">
+                    <div class="metric-item">
+                        <div class="label">Min</div>
+                        <div class="value">26.2°C</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="label">Max</div>
+                        <div class="value">29.8°C</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Row -->
+    <div class="row g-3">
+        <!-- Live System Chart - OPTIMIZED HEIGHT WITH FILLED SPACE -->
+        <div class="col-lg-8">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5>
+                        <i class="fas fa-chart-line"></i>
+                        Live System Metrics
+                    </h5>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #8b5cf6;"></div>
+                            <span>Power</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #3b82f6;"></div>
+                            <span>Voltage</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #10b981;"></div>
+                            <span>Current</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Fixed height chart wrapper -->
+                <div class="chart-wrapper">
+                    <canvas id="systemChart"></canvas>
+                </div>
+                
+                <!-- Time Range Selector -->
+                <div class="time-range-group">
+                    <button class="btn-time active" onclick="setTimeRange('5m')">5m</button>
+                    <button class="btn-time" onclick="setTimeRange('15m')">15m</button>
+                    <button class="btn-time" onclick="setTimeRange('30m')">30m</button>
+                    <button class="btn-time" onclick="setTimeRange('1h')">1h</button>
+                    <button class="btn-time" onclick="setTimeRange('6h')">6h</button>
+                    <button class="btn-time" onclick="setTimeRange('24h')">24h</button>
+                </div>
+                
+                <!-- Real-time Stats - COMPACT -->
+                <div class="row g-2 mt-2">
+                    <div class="col-4">
+                        <div class="stat-mini">
+                            <div class="small">Power</div>
+                            <div class="fs-4 fw-bold text-white" id="livePower">748</div>
+                            <div class="text-success small" id="powerTrend">+2.3%</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stat-mini">
+                            <div class="small">Efficiency</div>
+                            <div class="fs-4 fw-bold text-white" id="efficiency">94.2%</div>
+                            <div class="text-success small">Peak</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stat-mini">
+                            <div class="small">Load</div>
+                            <div class="fs-4 fw-bold text-white" id="load">82%</div>
+                            <div class="text-warning small" id="loadStatus">Optimal</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: Compact Metrics Row 1 - Peak/Avg Values -->
+                <div class="row g-2 mt-2">
+                    <div class="col-6">
+                        <div class="compact-info-row">
+                            <div class="info-item">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>Peak Power</span>
+                            </div>
+                            <strong>892 mW</strong>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="compact-info-row">
+                            <div class="info-item">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Avg Power</span>
+                            </div>
+                            <strong>748 mW</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: Compact Metrics Row 2 - Range Values -->
+                <div class="row g-2 mt-2">
+                    <div class="col-6">
+                        <div class="compact-info-row">
+                            <div class="info-item">
+                                <i class="fas fa-bolt"></i>
+                                <span>Voltage Range</span>
+                            </div>
+                            <strong>462-498 mV</strong>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="compact-info-row">
+                            <div class="info-item">
+                                <i class="fas fa-water"></i>
+                                <span>Current Range</span>
+                            </div>
+                            <strong>1.9-2.3 mA</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: Metrics Footer with additional system info -->
+                <div class="metrics-footer">
+                    <div class="metric-footer-item">
+                        <div class="label">Energy Today</div>
+                        <div class="value">24.8 Wh</div>
+                    </div>
+                    <div class="metric-footer-item">
+                        <div class="label">Battery</div>
+                        <div class="value">87%</div>
+                    </div>
+                    <div class="metric-footer-item">
+                        <div class="label">Runtime</div>
+                        <div class="value">28d</div>
+                    </div>
+                    <div class="metric-footer-item">
+                        <div class="label">Samples</div>
+                        <div class="value">1.4M</div>
+                    </div>
+                </div>
+
+                <!-- NEW: Status Indicators -->
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <div class="status-indicator">
+                        <span class="status-dot"></span>
+                        <span>Data Streaming</span>
+                    </div>
+                    <div class="status-indicator">
+                        <i class="fas fa-database me-1" style="color: #8b5cf6;"></i>
+                        <span>Buffer: 64%</span>
+                    </div>
+                    <div class="status-indicator">
+                        <i class="fas fa-wifi me-1" style="color: #3b82f6;"></i>
+                        <span>-67 dBm</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hardware Controls - COMPACT -->
+        <div class="col-lg-4">
+            <div class="controls-card">
+                <h5 class="text-white mb-3">
+                    <i class="fas fa-cogs me-2" style="color: #8b5cf6;"></i>
+                    Hardware Controls
+                </h5>
+
+                <!-- Peristaltic Pump Control -->
+                <div class="control-group">
+                    <div class="control-title">
+                        <i class="fas fa-pump-medical"></i>
+                        Peristaltic Pump
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div class="d-flex align-items-center">
+                            <label class="switch">
+                                <input type="checkbox" id="pumpSwitch" checked>
+                                <span class="slider"></span>
+                            </label>
+                            <span class="text-white small" id="pumpState">ON</span>
+                        </div>
+                        <span class="value-badge" id="pumpSpeedValue">65%</span>
+                    </div>
+                    <div class="range-slider">
+                        <input type="range" id="pumpSpeed" min="0" max="100" value="65">
+                    </div>
+                </div>
+
+                <!-- Cooling Fan Control -->
+                <div class="control-group">
+                    <div class="control-title">
+                        <i class="fas fa-fan"></i>
+                        Cooling Fan
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <label class="switch">
+                                <input type="checkbox" id="fanSwitch" checked>
+                                <span class="slider"></span>
+                            </label>
+                            <span class="text-white small" id="fanState">AUTO</span>
+                        </div>
+                        <span class="value-badge" id="fanSpeed">2400</span>
+                    </div>
+                    <div class="mt-1 text-secondary small">
+                        <i class="fas fa-thermometer-half me-1"></i>
+                        <span id="currentTemp">28.4°C</span> / 25°C
+                    </div>
+                </div>
+
+                <!-- Load Controller -->
+                <div class="control-group">
+                    <div class="control-title">
+                        <i class="fas fa-bolt"></i>
+                        Load Controller
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <label class="switch">
+                                <input type="checkbox" id="loadSwitch" checked>
+                                <span class="slider"></span>
+                            </label>
+                            <span class="text-white small" id="loadState">500Ω</span>
+                        </div>
+                        <span class="value-badge" id="loadValue">500Ω</span>
+                    </div>
+                    <div class="mt-1 text-secondary small">
+                        <i class="fas fa-chart-line me-1"></i>
+                        Draw: <span id="powerDraw">748 mW</span>
+                    </div>
+                </div>
+
+                <!-- Alarm Panel - COMPACT -->
+                <div class="alarm-panel">
+                    <h6 class="text-white mb-2 small">
+                        <i class="fas fa-exclamation-triangle me-1" style="color: #ef4444;"></i>
+                        Active Alarms (2)
+                    </h6>
+                    <div class="alarm-item">
+                        <div class="alarm-level info"></div>
+                        <div class="flex-grow-1">
+                            <div class="text-white small">Temperature high</div>
+                            <div class="text-secondary smaller">2m ago</div>
+                        </div>
+                        <span class="badge-cosmic">INFO</span>
+                    </div>
+                    <div class="alarm-item">
+                        <div class="alarm-level warning"></div>
+                        <div class="flex-grow-1">
+                            <div class="text-white small">Flow fluctuation</div>
+                            <div class="text-secondary smaller">15m ago</div>
+                        </div>
+                        <span class="badge-cosmic badge-warning">WARN</span>
+                    </div>
+                </div>
+
+                <!-- Emergency Stop Button -->
+                <button class="emergency-btn mt-2" onclick="emergencyStop()">
+                    <i class="fas fa-stop-circle me-2"></i>
+                    EMERGENCY STOP
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Health Metrics - COMPACT -->
+    <div class="row g-2 mt-3">
+        <div class="col-lg-3 col-md-6">
+            <div class="status-card" style="padding: 1rem;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fas fa-battery-three-quarters fa-2x" style="color: #10b981;"></i>
+                    <div>
+                        <div class="text-secondary small">BATTERY</div>
+                        <div class="fs-5 fw-bold text-white" id="batteryLevel">87%</div>
+                        <div class="progress-cosmic" style="width: 80px;">
+                            <div class="progress-bar-cosmic" id="batteryBar" style="width: 87%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="status-card" style="padding: 1rem;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fas fa-wifi fa-2x" style="color: #3b82f6;"></i>
+                    <div>
+                        <div class="text-secondary small">SIGNAL</div>
+                        <div class="fs-5 fw-bold text-white" id="signalStrength">-67</div>
+                        <div class="text-secondary small">dBm</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="status-card" style="padding: 1rem;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fas fa-memory fa-2x" style="color: #8b5cf6;"></i>
+                    <div>
+                        <div class="text-secondary small">BUFFER</div>
+                        <div class="fs-5 fw-bold text-white" id="bufferUsage">64%</div>
+                        <div class="progress-cosmic" style="width: 80px;">
+                            <div class="progress-bar-cosmic" id="bufferBar" style="width: 64%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="status-card" style="padding: 1rem;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fas fa-clock fa-2x" style="color: #f59e0b;"></i>
+                    <div>
+                        <div class="text-secondary small">LAST SYNC</div>
+                        <div class="fs-5 fw-bold text-white" id="lastSync">2s</div>
+                        <div class="text-secondary small">ago</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script>
+let systemChart;
+let chartData = {
+    labels: [],
+    power: [],
+    voltage: [],
+    current: []
+};
+let timeRange = '30m';
+let updateInterval;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize immediately
+    initSystemChart();
+    setupHardwareControls();
+    setupLiveUpdates();
+    startDataGeneration();
+});
+
+function initSystemChart() {
+    const ctx = document.getElementById('systemChart')?.getContext('2d');
+    if (!ctx) {
+        console.error('Chart canvas not found');
+        return;
+    }
+    
+    // Generate initial data
+    generateInitialData();
+    
+    systemChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: chartData.labels,
+            datasets: [
+                {
+                    label: 'Power (mW)',
+                    data: chartData.power,
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    yAxisID: 'y-power',
+                    pointRadius: 1,
+                    pointHoverRadius: 4
+                },
+                {
+                    label: 'Voltage (mV)',
+                    data: chartData.voltage,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'transparent',
+                    borderWidth: 1.5,
+                    tension: 0.4,
+                    borderDash: [3, 3],
+                    yAxisID: 'y-voltage',
+                    pointRadius: 1,
+                    pointHoverRadius: 4
+                },
+                {
+                    label: 'Current (mA)',
+                    data: chartData.current,
+                    borderColor: '#10b981',
+                    backgroundColor: 'transparent',
+                    borderWidth: 1.5,
+                    tension: 0.4,
+                    yAxisID: 'y-current',
+                    pointRadius: 1,
+                    pointHoverRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: {
+                padding: {
+                    top: 5,
+                    bottom: 5,
+                    left: 5,
+                    right: 5
+                }
+            },
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(11, 7, 32, 0.95)',
+                    titleColor: '#8b5cf6',
+                    bodyColor: '#fff',
+                    borderColor: '#8b5cf6',
+                    borderWidth: 1,
+                    padding: 6,
+                    bodyFont: { size: 10 },
+                    titleFont: { size: 11 }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { 
+                        color: '#b0b0d0',
+                        maxRotation: 30,
+                        minRotation: 30,
+                        font: { size: 8 },
+                        maxTicksLimit: 6
+                    }
+                },
+                'y-power': {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    grid: { color: 'rgba(139, 92, 246, 0.1)' },
+                    ticks: { 
+                        color: '#8b5cf6',
+                        callback: v => v + 'mW',
+                        font: { size: 8 },
+                        maxTicksLimit: 4
+                    },
+                    min: 500,
+                    max: 900
+                },
+                'y-voltage': {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    grid: { display: false },
+                    ticks: { 
+                        color: '#3b82f6',
+                        callback: v => v + 'mV',
+                        font: { size: 8 },
+                        maxTicksLimit: 4
+                    },
+                    min: 400,
+                    max: 550
+                },
+                'y-current': { display: false }
+            }
+        }
+    });
+}
+
+function generateInitialData() {
+    const points = getPointsForTimeRange();
+    chartData.labels = [];
+    chartData.power = [];
+    chartData.voltage = [];
+    chartData.current = [];
+    
+    const now = new Date();
+    
+    for (let i = points - 1; i >= 0; i--) {
+        const time = new Date(now - i * getIntervalSeconds() * 1000);
+        chartData.labels.push(time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+        
+        const basePower = 650 + Math.sin(i * 0.5) * 100;
+        const baseVoltage = 480 + Math.cos(i * 0.3) * 30;
+        const baseCurrent = 2.0 + Math.sin(i * 0.4) * 0.2;
+        
+        chartData.power.push(Math.round(basePower + (Math.random() * 20 - 10)));
+        chartData.voltage.push(Math.round(baseVoltage + (Math.random() * 10 - 5)));
+        chartData.current.push(Number((baseCurrent + (Math.random() * 0.1 - 0.05)).toFixed(2)));
+    }
+}
+
+function getPointsForTimeRange() {
+    switch(timeRange) {
+        case '5m': return 20;
+        case '15m': return 30;
+        case '30m': return 40;
+        case '1h': return 60;
+        case '6h': return 72;
+        case '24h': return 96;
+        default: return 40;
+    }
+}
+
+function getIntervalSeconds() {
+    switch(timeRange) {
+        case '5m': return 15;
+        case '15m': return 30;
+        case '30m': return 45;
+        case '1h': return 60;
+        case '6h': return 300;
+        case '24h': return 900;
+        default: return 45;
+    }
+}
+
+function setTimeRange(range) {
+    timeRange = range;
+    
+    document.querySelectorAll('.btn-time').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    generateInitialData();
+    
+    if (systemChart) {
+        systemChart.data.labels = chartData.labels;
+        systemChart.data.datasets[0].data = chartData.power;
+        systemChart.data.datasets[1].data = chartData.voltage;
+        systemChart.data.datasets[2].data = chartData.current;
+        systemChart.update();
+    }
+}
+
+function setupHardwareControls() {
+    const pumpSwitch = document.getElementById('pumpSwitch');
+    const pumpState = document.getElementById('pumpState');
+    const pumpSpeed = document.getElementById('pumpSpeed');
+    const pumpSpeedValue = document.getElementById('pumpSpeedValue');
+    
+    if (pumpSwitch) {
+        pumpSwitch.addEventListener('change', function() {
+            pumpState.textContent = this.checked ? 'ON' : 'OFF';
+            pumpSpeed.disabled = !this.checked;
+        });
+    }
+    
+    if (pumpSpeed) {
+        pumpSpeed.addEventListener('input', function() {
+            pumpSpeedValue.textContent = this.value + '%';
+        });
+    }
+    
+    const fanSwitch = document.getElementById('fanSwitch');
+    const fanState = document.getElementById('fanState');
+    
+    if (fanSwitch) {
+        fanSwitch.addEventListener('change', function() {
+            fanState.textContent = this.checked ? 'AUTO' : 'OFF';
+        });
+    }
+    
+    const loadSwitch = document.getElementById('loadSwitch');
+    const loadState = document.getElementById('loadState');
+    
+    if (loadSwitch) {
+        loadSwitch.addEventListener('change', function() {
+            loadState.textContent = this.checked ? '500Ω' : 'OFF';
+        });
+    }
+}
+
+function setupLiveUpdates() {
+    if (updateInterval) clearInterval(updateInterval);
+    updateInterval = setInterval(updateMetrics, 5000);
+}
+
+function updateMetrics() {
+    const newPower = 650 + Math.random() * 150;
+    const newVoltage = 480 + Math.random() * 40;
+    const newCurrent = 2.0 + Math.random() * 0.3;
+    const newTemp = 27 + Math.random() * 2;
+    const newEfficiency = 90 + Math.random() * 8;
+    const newLoad = 75 + Math.random() * 15;
+    
+    document.getElementById('totalPower').innerText = Math.round(newPower);
+    document.getElementById('voltage').innerText = Math.round(newVoltage) + ' mV';
+    document.getElementById('current').innerText = newCurrent.toFixed(2) + ' mA';
+    document.getElementById('temperature').innerText = newTemp.toFixed(1);
+    document.getElementById('livePower').innerText = Math.round(newPower);
+    document.getElementById('efficiency').innerText = newEfficiency.toFixed(1) + '%';
+    document.getElementById('load').innerText = Math.round(newLoad) + '%';
+    document.getElementById('currentTemp').innerText = newTemp.toFixed(1) + '°C';
+    document.getElementById('powerDraw').innerText = Math.round(newPower) + ' mW';
+    
+    const powerTrend = document.getElementById('powerTrend');
+    const trendValue = (Math.random() * 6 - 3).toFixed(1);
+    powerTrend.innerHTML = (trendValue > 0 ? '+' : '') + trendValue + '%';
+    powerTrend.className = trendValue > 0 ? 'text-success small' : 'text-danger small';
+    
+    const loadStatus = document.getElementById('loadStatus');
+    if (newLoad > 90) {
+        loadStatus.innerText = 'High';
+        loadStatus.className = 'text-danger small';
+    } else if (newLoad < 60) {
+        loadStatus.innerText = 'Low';
+        loadStatus.className = 'text-warning small';
+    } else {
+        loadStatus.innerText = 'Optimal';
+        loadStatus.className = 'text-success small';
+    }
+    
+    const batteryLevel = document.getElementById('batteryLevel');
+    const batteryBar = document.getElementById('batteryBar');
+    const newBattery = 80 + Math.random() * 15;
+    batteryLevel.innerText = Math.round(newBattery) + '%';
+    batteryBar.style.width = newBattery + '%';
+    
+    const bufferUsage = document.getElementById('bufferUsage');
+    const bufferBar = document.getElementById('bufferBar');
+    const newBuffer = 50 + Math.random() * 30;
+    bufferUsage.innerText = Math.round(newBuffer) + '%';
+    bufferBar.style.width = newBuffer + '%';
+    
+    document.getElementById('signalStrength').innerText = Math.round(-60 - Math.random() * 15);
+    document.getElementById('lastSync').innerText = Math.floor(Math.random() * 5) + 's';
+    
+    if (systemChart) {
+        const newTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        
+        systemChart.data.labels.push(newTime);
+        systemChart.data.datasets[0].data.push(Math.round(newPower));
+        systemChart.data.datasets[1].data.push(Math.round(newVoltage));
+        systemChart.data.datasets[2].data.push(Number(newCurrent.toFixed(2)));
+        
+        const maxPoints = getPointsForTimeRange();
+        if (systemChart.data.labels.length > maxPoints) {
+            systemChart.data.labels.shift();
+            systemChart.data.datasets[0].data.shift();
+            systemChart.data.datasets[1].data.shift();
+            systemChart.data.datasets[2].data.shift();
+        }
+        
+        systemChart.update('none');
+    }
+}
+
+function startDataGeneration() {
+    updateMetrics();
+}
+
+function emergencyStop() {
+    if (confirm('🚨 EMERGENCY STOP? This will halt all systems immediately!')) {
+        document.getElementById('pumpSwitch').checked = false;
+        document.getElementById('fanSwitch').checked = false;
+        document.getElementById('loadSwitch').checked = false;
+        
+        document.getElementById('pumpState').textContent = 'OFF';
+        document.getElementById('fanState').textContent = 'OFF';
+        document.getElementById('loadState').textContent = 'OFF';
+        
+        if (updateInterval) clearInterval(updateInterval);
+    }
+}
+</script>
+{% endblock %}

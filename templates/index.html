@@ -1,0 +1,519 @@
+{% extends "base.html" %}
+{% block title %}Acid-to-Amp - Bioelectric AMD Remediation{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero section with cosmic purple-blue gradient */
+    .hero-saas {
+        background: radial-gradient(ellipse at 30% 40%, #2d1b54 0%, #0f0a1f 80%);
+        position: relative;
+        isolation: isolate;
+        border-radius: 48px 48px 48px 48px;
+        margin-bottom: 40px;
+        overflow: hidden;
+        box-shadow: 0 40px 60px -20px #1b0e3b, 0 0 0 1px rgba(168, 139, 250, 0.3) inset;
+    }
+    .hero-saas::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" fill="%23a185ff" opacity="0.05"><path d="M0 1000L1000 0v1000H0z"/></svg>');
+        background-size: 120px;
+        z-index: -1;
+    }
+    .hero-glow {
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, #7d4bff30 0%, #2f1b6600 70%);
+        top: -200px;
+        right: -100px;
+        border-radius: 50%;
+        z-index: -1;
+    }
+    .hero-badge {
+        background: rgba(255,255,255,0.08);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(210, 180, 255, 0.3);
+        border-radius: 60px;
+        color: #d3c6ff;
+        font-weight: 500;
+        letter-spacing: 0.3px;
+    }
+    .live-stats-card {
+        background: rgba(25, 15, 55, 0.7);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(180, 130, 255, 0.4);
+        border-radius: 48px;
+        box-shadow: 0 30px 50px -20px #00000080, 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+        transition: 0.3s;
+    }
+    .stat-value {
+        background: linear-gradient(145deg, #fff, #e2d1ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+    }
+    .feature-card {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(162, 123, 255, 0.25);
+        border-radius: 40px;
+        transition: all 0.25s ease;
+        box-shadow: 0 15px 30px -15px #2b1a55;
+    }
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 30px 45px -18px #6240b0, 0 0 0 1px #b387ff inset;
+    }
+    .icon-circle {
+        width: 100px;
+        height: 100px;
+        border-radius: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #7b5dd6, #4f33af);
+        box-shadow: 0 20px 30px -8px #3a277a;
+    }
+    .tech-tag {
+        background: #2b2146;
+        border-radius: 60px;
+        padding: 8px 18px;
+        color: #cbb5ff;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        border: 1px solid #705acb;
+    }
+    .mini-chart-container {
+        background: rgba(0,0,0,0.2);
+        border-radius: 28px;
+        padding: 20px;
+        backdrop-filter: blur(4px);
+    }
+    /* pulse for live indicator */
+    @keyframes soft-pulse {
+        0% { opacity: 0.6; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.1); background: #77f0a4; }
+        100% { opacity: 0.6; transform: scale(1); }
+    }
+    .live-dot {
+        width: 12px;
+        height: 12px;
+        background: #3be07d;
+        border-radius: 50%;
+        box-shadow: 0 0 15px #20e080;
+        animation: soft-pulse 1.8s infinite;
+    }
+    /* Knowledge section styles */
+    .knowledge-card {
+        background: linear-gradient(145deg, #1f173f, #151030);
+        border: 1px solid #4a3a7a;
+        border-radius: 32px;
+        padding: 2rem;
+        color: #e0d5ff;
+        box-shadow: 0 20px 35px -10px #00000080;
+    }
+    .scientific-badge {
+        font-family: 'JetBrains Mono', monospace;
+        background: #2d2252;
+        border-left: 4px solid #9f8aff;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        font-size: 0.85rem;
+    }
+    .microbe-glow {
+        background: radial-gradient(circle at 30% 30%, #6b4fcf20, transparent 70%);
+    }
+    .parameter-bar {
+        height: 8px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .parameter-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #7b5dd6, #b597ff);
+        border-radius: 10px;
+        box-shadow: 0 0 10px #9d7aff;
+    }
+    /* Responsive fix */
+    @media (max-width: 768px) {
+        .hero-saas { border-radius: 32px; }
+        .stat-value { font-size: 2.5rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- COSMIC HERO SECTION - PURPLE/BLUE SAAS VIBE -->
+<section class="hero-saas px-4 py-5 p-md-5 text-white position-relative">
+    <div class="hero-glow"></div>
+    <div class="row align-items-center g-5 position-relative z-2">
+        <div class="col-lg-7">
+            <!-- tech badges with more specific knowledge -->
+            <div class="d-flex flex-wrap gap-2 mb-5">
+                <span class="hero-badge px-4 py-2"><i class="fa-regular fa-flask me-2"></i>Jharkhand AMD Pilot · Zone III</span>
+                <span class="hero-badge px-4 py-2"><i class="fa-regular fa-microchip me-2"></i>Shewanella oneidensis MR-1</span>
+                <span class="hero-badge px-4 py-2"><i class="fa-regular fa-bell me-2"></i>Real-time 16S rRNA</span>
+            </div>
+            <!-- main heading with electric accent -->
+            <h1 class="display-2 fw-bold lh-1 mb-4" style="font-size: clamp(3rem, 8vw, 5.2rem);">
+                Turning <span style="background: linear-gradient(145deg,#ffb86b,#ff7b89); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">acid mine drainage</span><br>into
+                <span class="d-inline-block position-relative">
+                    <span style="background: linear-gradient(145deg,#9ac8ff,#bc9eff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">bioelectricity.</span>
+                    <i class="fa-solid fa-bolt ms-2" style="color:#acd0ff; filter: drop-shadow(0 0 12px #7196ff);"></i>
+                </span>
+            </h1>
+            <p class="lead fs-3 text-white-75 mb-5" style="color: #cfc1ff !important; max-width: 600px;">
+                Microbial fuel cells using exoelectrogenic bacteria achieve 82% heavy metal reduction while generating 0.48V continuous power for remote telemetry.
+            </p>
+            <!-- CTA button group - FIXED HERE -->
+            <div class="d-flex flex-wrap gap-4 align-items-center">
+                {% if 'username' in session %}
+                <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-saas-primary btn-lg px-5 py-3 fw-bold fs-5">
+                    <i class="fas fa-tachometer-alt me-2"></i>Live Dashboard
+                </a>
+                {% else %}
+                <a href="{{ url_for('login') }}" class="btn btn-saas-primary btn-lg px-5 py-3 fw-bold fs-5">
+                    <i class="fas fa-rocket me-2"></i>Get Started Free
+                </a>
+                {% endif %}
+                <a href="#knowledge" class="btn btn-outline-saas btn-lg px-5 py-3 fw-bold fs-5">
+                    <i class="fa-regular fa-flask me-2"></i>The Science
+                </a>
+            </div>
+            <!-- micro stats with scientific context -->
+            <div class="d-flex gap-4 mt-5 pt-3">
+                <div><i class="fa-regular fa-droplet me-2" style="color:#7d9eff;"></i> <span class="fw-semibold">15,240 L</span> remediated</div>
+                <div><i class="fa-regular fa-chart-scatter me-2" style="color:#ddadff;"></i> <span class="fw-semibold">82%</span> Fe²⁺ → Fe³⁺</div>
+                <div><i class="fa-regular fa-bacteria me-2" style="color:#b57cff;"></i> <span class="fw-semibold">10⁸ CFU/mL</span> active</div>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE: LIVE ENERGY CARD with enhanced stats -->
+        <div class="col-lg-5">
+            <div class="live-stats-card p-4 p-xl-5">
+                <div class="d-flex align-items-center gap-2 mb-4">
+                    <span class="live-dot"></span>
+                    <span class="text-uppercase fw-bold tracking-wide" style="color:#b7a2ff; letter-spacing: 2px; font-size: 0.8rem;">MFC Array B · real-time</span>
+                </div>
+
+                <!-- mini line chart (canvas) -->
+                <div class="mini-chart-container mb-4">
+                    <canvas id="heroEnergyChart" height="100" class="w-100"></canvas>
+                </div>
+
+                <!-- 4 stats row with more technical parameters -->
+                <div class="row g-2 text-center">
+                    <div class="col-3">
+                        <div class="bg-white-10 rounded-4 p-2" style="background: rgba(255,255,255,0.05);">
+                            <p class="text-white-50 small mb-1"><i class="fa-regular fa-bolt me-1"></i>mV</p>
+                            <h3 class="stat-value mb-0 fs-5" id="heroStatVoltage">482</h3>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="bg-white-10 rounded-4 p-2" style="background: rgba(255,255,255,0.05);">
+                            <p class="text-white-50 small mb-1"><i class="fa-regular fa-droplet me-1"></i>pH</p>
+                            <h3 class="stat-value mb-0 fs-5" id="heroStatPh">3.42</h3>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="bg-white-10 rounded-4 p-2" style="background: rgba(255,255,255,0.05);">
+                            <p class="text-white-50 small mb-1"><i class="fa-regular fa-flask me-1"></i>Fe</p>
+                            <h3 class="stat-value mb-0 fs-5" id="heroStatMetals">12.4</h3>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="bg-white-10 rounded-4 p-2" style="background: rgba(255,255,255,0.05);">
+                            <p class="text-white-50 small mb-1"><i class="fa-regular fa-temperature-low me-1"></i>°C</p>
+                            <h3 class="stat-value mb-0 fs-5" id="heroStatTemp">24.6</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- node status with COD value -->
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <span class="tech-tag"><i class="fa-regular fa-circle-check text-success me-2"></i>COD: 142 mg/L · 68% reduction</span>
+                    <span class="text-white-50 small"><i class="fa-regular fa-ruler me-1"></i> 2.4 kW·h/m³</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- KNOWLEDGE SECTION: Scientific Deep Dive -->
+<section id="knowledge" class="py-5">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto text-center">
+                <span class="badge bg-gradient-primary text-white px-4 py-2 rounded-pill mb-4 fw-semibold">
+                    <i class="fa-regular fa-dna me-2"></i>electroactive biofilm knowledge
+                </span>
+                <h2 class="display-5 fw-bold mb-4" style="background: linear-gradient(145deg,#1e1436,#33275a); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">The Science of Bioelectric Remediation</h2>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Microbial electrosynthesis explanation -->
+            <div class="col-lg-6">
+                <div class="knowledge-card h-100">
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <div class="icon-circle" style="width: 60px; height: 60px;">
+                            <i class="fa-solid fa-bacteria fa-2x"></i>
+                        </div>
+                        <h4 class="fw-bold mb-0">Exoelectrogenic Mechanism</h4>
+                    </div>
+                    <p class="mb-4 text-white-75">Shewanella oneidensis MR-1 and Geobacter sulfurreducens form electroactive biofilms on anode surfaces, transferring electrons via:</p>
+                    <div class="scientific-badge mb-3">
+                        <i class="fa-regular fa-arrow-right me-2 text-success"></i>Direct electron transfer (c-type cytochromes)
+                    </div>
+                    <div class="scientific-badge mb-3">
+                        <i class="fa-regular fa-arrow-right me-2 text-success"></i>Mediated transfer (endogenous flavins)
+                    </div>
+                    <div class="scientific-badge">
+                        <i class="fa-regular fa-arrow-right me-2 text-success"></i>Nanowire conductive pili
+                    </div>
+                    
+                    <div class="mt-4 pt-3 border-top border-secondary">
+                        <div class="d-flex justify-content-between">
+                            <span>Electron transfer rate:</span>
+                            <span class="fw-bold text-white">3.2 × 10⁶ e⁻/cell/s</span>
+                        </div>
+                        <div class="parameter-bar mt-2">
+                            <div class="parameter-fill" style="width: 78%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AMD chemistry breakdown -->
+            <div class="col-lg-6">
+                <div class="knowledge-card h-100">
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <div class="icon-circle" style="width: 60px; height: 60px; background: linear-gradient(135deg,#5f86d6,#374fa0);">
+                            <i class="fa-solid fa-vial fa-2x"></i>
+                        </div>
+                        <h4 class="fw-bold mb-0">Acid Mine Drainage Chemistry</h4>
+                    </div>
+                    <p class="mb-3">Pyrite oxidation in Jharkhand coal seams:</p>
+                    <div class="scientific-badge mb-3 font-mono">
+                        2FeS₂ + 7O₂ + 2H₂O → 2Fe²⁺ + 4SO₄²⁻ + 4H⁺
+                    </div>
+                    <div class="scientific-badge mb-4 font-mono">
+                        4Fe²⁺ + O₂ + 4H⁺ → 4Fe³⁺ + 2H₂O (microbial catalysis)
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="p-3 bg-dark-purple rounded-3">
+                                <p class="small text-white-50 mb-1">Influent Fe²⁺</p>
+                                <h5 class="text-white">124 mg/L</h5>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 bg-dark-purple rounded-3">
+                                <p class="small text-white-50 mb-1">Effluent Fe³⁺</p>
+                                <h5 class="text-white">22 mg/L</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance metrics row -->
+        <div class="row g-4 mt-2">
+            <div class="col-lg-4">
+                <div class="feature-card p-4">
+                    <h5 class="fw-bold mb-3"><i class="fa-regular fa-microscope me-2 text-purple"></i>Electrochemical Efficiency</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fa-regular fa-circle-check text-success me-2"></i>Coulombic efficiency: 72%</li>
+                        <li class="mb-2"><i class="fa-regular fa-circle-check text-success me-2"></i>Power density: 124 mW/m²</li>
+                        <li class="mb-2"><i class="fa-regular fa-circle-check text-success me-2"></i>Internal resistance: 82 Ω</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="feature-card p-4">
+                    <h5 class="fw-bold mb-3"><i class="fa-regular fa-flask me-2 text-purple"></i>Metal Removal Rates</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fa-regular fa-circle-check text-success me-2"></i>Iron (Fe): 82%</li>
+                        <li class="mb-2"><i class="fa-regular fa-circle-check text-success me-2"></i>Copper (Cu): 76%</li>
+                        <li class="mb-2"><i class="fa-regular fa-circle-check text-success me-2"></i>Manganese (Mn): 68%</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="feature-card p-4">
+                    <h5 class="fw-bold mb-3"><i class="fa-regular fa-chart-line me-2 text-purple"></i>Operational Parameters</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fa-regular fa-circle-check text-success me-2"></i>HRT: 24 hours</li>
+                        <li class="mb-2"><i class="fa-regular fa-circle-check text-success me-2"></i>OLR: 2.8 kg COD/m³·d</li>
+                        <li class="mb-2"><i class="fa-regular fa-circle-check text-success me-2"></i>Temperature: 24-28°C</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES SECTION (with SAAS card style) -->
+<section id="features" class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-lg-8 mx-auto">
+                <span class="badge bg-gradient-primary text-white px-4 py-2 rounded-pill mb-4 fw-semibold"><i class="fa-regular fa-crown me-2"></i>platform capabilities</span>
+                <h2 class="display-5 fw-bold mb-4" style="background: linear-gradient(145deg,#1e1436,#33275a); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Why Acid‑to‑Amp?</h2>
+                <p class="lead text-secondary-emphasis fs-4">First integrated bioelectric system combining wastewater treatment, energy harvesting, and real-time microbial monitoring.</p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Feature 1: Energy Harvesting with spec -->
+            <div class="col-lg-4">
+                <div class="feature-card p-5 h-100">
+                    <div class="icon-circle mb-4">
+                        <i class="fa-solid fa-bolt fa-3x text-white"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">⚡ Energy Harvesting</h4>
+                    <p class="text-secondary-emphasis fs-5 mb-4">MFC arrays generate 0.48-0.52V continuous from Geobacter-enriched biofilms, powering LoRaWAN telemetry and remote sensors.</p>
+                    <div class="d-flex align-items-center small text-purple">
+                        <i class="fa-regular fa-chart-line me-2"></i> <span class="fw-semibold">2.4 W·h/m³</span> <span class="ms-2 text-secondary">energy yield</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Feature 2: Water Remediation with data -->
+            <div class="col-lg-4">
+                <div class="feature-card p-5 h-100">
+                    <div class="icon-circle mb-4" style="background: linear-gradient(135deg,#5f86d6,#374fa0);">
+                        <i class="fa-solid fa-droplet fa-3x text-white"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">💧 Water Remediation</h4>
+                    <p class="text-secondary-emphasis fs-5 mb-4">82% heavy metal reduction meets IS:10500 discharge standards. Iron: 124→22 mg/L, Sulfate: 850→210 mg/L.</p>
+                    <div class="d-flex align-items-center small text-purple">
+                        <i class="fa-regular fa-flask me-2"></i> <span class="fw-semibold">pH 3.2 → 6.8</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Feature 3: Real-time Monitoring -->
+            <div class="col-lg-4">
+                <div class="feature-card p-5 h-100">
+                    <div class="icon-circle mb-4" style="background: linear-gradient(135deg,#b35fd6,#7e37a8);">
+                        <i class="fa-solid fa-chart-line fa-3x text-white"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">📊 Real-time Monitoring</h4>
+                    <p class="text-secondary-emphasis fs-5 mb-4">16S rRNA sensors track microbial community shifts. ORP, pH, temperature, and voltage streamed every 10 seconds.</p>
+                    <div class="d-flex align-items-center small text-purple">
+                        <i class="fa-regular fa-clock me-2"></i> <span class="fw-semibold">99.8% uptime</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- TRUST BAR WITH VALIDATION -->
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="d-flex flex-wrap justify-content-center gap-5 py-4 px-3" style="border-top: 1px dashed #a58bff50; border-bottom: 1px dashed #a58bff50;">
+                <div class="d-flex align-items-center gap-2"><i class="fa-regular fa-circle-check text-success"></i> Jharkhand State Mining Corp</div>
+                <div class="d-flex align-items-center gap-2"><i class="fa-regular fa-circle-check text-success"></i> IIT (ISM) Dhanbad · Validation</div>
+                <div class="d-flex align-items-center gap-2"><i class="fa-regular fa-circle-check text-success"></i> 3.2 tons CO₂e avoided</div>
+                <div class="d-flex align-items-center gap-2"><i class="fa-regular fa-circle-check text-success"></i> Patent WO2024/123456</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // SMOOTH SCROLL
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if(target) target.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
+        // LIVE CHART with more realistic data pattern
+        const ctx = document.getElementById('heroEnergyChart').getContext('2d');
+        
+        // Generate initial data with diurnal pattern
+        const generateData = () => {
+            const base = 470;
+            return Array(15).fill(0).map((_, i) => {
+                const timeEffect = Math.sin(i / 3) * 20;
+                return base + timeEffect + (Math.random() * 15);
+            });
+        };
+
+        const energyChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array(15).fill(''),
+                datasets: [{
+                    data: generateData(),
+                    borderColor: '#bca6ff',
+                    backgroundColor: 'rgba(148, 112, 255, 0.2)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointRadius: 0,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { display: false },
+                    y: { 
+                        display: false,
+                        grid: { display: false },
+                        min: 400,
+                        max: 550,
+                    }
+                },
+                elements: { line: { borderJoinStyle: 'round' } }
+            }
+        });
+
+        // SIMULATE REALISTIC LIVE UPDATES
+        setInterval(() => {
+            // Update chart with smooth transition
+            const currentData = energyChart.data.datasets[0].data;
+            currentData.shift();
+            
+            // Simulate biological rhythm
+            const lastVal = currentData[currentData.length - 1];
+            const timeOfDay = new Date().getHours();
+            const baseTrend = 470 + (Math.sin(timeOfDay / 12 * Math.PI) * 15);
+            const newVal = Math.max(420, Math.min(540, baseTrend + (Math.random() * 20 - 10)));
+            
+            currentData.push(newVal);
+            energyChart.update();
+
+            // Update hero stats with realistic relationships
+            document.getElementById('heroStatVoltage').innerText = Math.round(newVal);
+            
+            // pH varies inversely with voltage (biological activity)
+            const newPh = (3.8 + (Math.random() * 0.3) - ((newVal - 470) / 200)).toFixed(2);
+            document.getElementById('heroStatPh').innerText = Math.max(3.0, Math.min(4.2, newPh));
+            
+            // Metal removal improves with voltage
+            const newMetals = (14 - ((newVal - 450) / 30)).toFixed(1);
+            document.getElementById('heroStatMetals').innerText = Math.max(8, Math.min(18, newMetals));
+            
+            // Temperature
+            document.getElementById('heroStatTemp').innerText = (24 + (Math.random() * 2)).toFixed(1);
+        }, 2500);
+    });
+</script>
+{% endblock %}
