@@ -507,3 +507,7 @@ if __name__ == "__main__":
         port=5000,
         debug=True
     )
+@app.errorhandler(Exception)
+def handle_error(e):
+    print("SERVER ERROR:", e)
+    return jsonify({"error": str(e)}), 500
