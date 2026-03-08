@@ -5,5 +5,5 @@ load_dotenv()
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'your-super-secret-key-change-in-production'
-    SQLALCHEMY_DATABASE_URI = "sqlite:///acid_to_amp.db"
+    SQLALCHEMY_DATABASE_URI = "sqlite:///acid_amp.db"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
