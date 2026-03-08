@@ -223,7 +223,96 @@ def clear_data():
         "success":True,
         "cleared":deleted
     })
+# =========================================================
+# ADMIN USER CRUD
+# =========================================================
 
+@app.route('/admin/users')
+@admin_required
+def admin_users():
+    users = User.get_all_users()
+    return jsonify(users)
+
+
+@app.route('/admin/create_user', methods=['POST'])
+@admin_required
+def admin_create_user():
+
+    username = request.form.get('username')
+    email = request.form.get('email')
+    password = request.form.get('password', 'temp123')
+    role = request.form.get('role', 'user')
+
+    existing = User.get_user_by_email(email)
+
+    if existing:
+        return jsonify({"success": False, "error": "Email already exists"}), 400
+
+    user_id = User.create_user(username, email, password, role)
+
+    return jsonify({
+        "success": True,
+        "user_id": user_id
+    })
+
+
+@app.route('/admin/update_user/<user_id>', methods=['POST'])
+@admin_required
+def admin_update_user(user_id):
+
+    updates = {
+        "username": request.form.get("username"),
+        "email": request.form.get("email"),
+        "role": request.form.get("role")
+    }
+
+    success = User.update_user(user_id, updates)
+
+    return jsonify({"success": success})
+
+
+@app.route('/admin/delete_user/<user_id>', methods=['POST'])
+@admin_required
+def admin_delete_user(user_id):
+
+    if str(session["user_id"]) == user_id:
+        return jsonify({"error": "Cannot delete yourself"}), 400
+
+    success = User.delete_user(user_id)
+
+    return jsonify({"success": success})
+# =========================================================
+# ADMIN MESSAGE CRUD
+# =========================================================
+
+@app.route('/admin/message_read/<message_id>', methods=['POST'])
+@admin_required
+def message_read(message_id):
+
+    success = ContactMessage.mark_as_read(message_id)
+
+    return jsonify({"success": success})
+
+
+@app.route('/admin/delete_message/<message_id>', methods=['POST'])
+@admin_required
+def delete_message(message_id):
+
+    success = ContactMessage.delete_message(message_id)
+
+    return jsonify({"success": success})
+
+
+@app.route('/admin/messages/mark_all_read', methods=['POST'])
+@admin_required
+def mark_all_messages_read():
+
+    count = ContactMessage.mark_all_read()
+
+    return jsonify({
+        "success": True,
+        "count": count
+    })
 # =========================================================
 # API ENDPOINTS
 # =========================================================
