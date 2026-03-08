@@ -214,7 +214,11 @@ class ContactMessage(db.Model):
             })
 
         return result
-
+@staticmethod
+def mark_all_read():
+    count = ContactMessage.query.filter_by(status="unread").update({"status": "read"})
+    db.session.commit()
+    return count
 
 # =========================================================
 # SENSOR DATA MODEL
