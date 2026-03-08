@@ -1429,45 +1429,63 @@
             });
 
             // Delete from view modal
-            document.getElementById('deleteFromViewBtn')?.addEventListener('click', async function() {
-                const msgId = document.getElementById('view_message_id').value;
-                if (!msgId || !confirm('Delete this message?')) return;
-                try {
-                    const res = await fetch(`/admin/delete_message/${msgId}`, { method: 'DELETE' });
-                    const data = await res.json();
-                    if (data.success) {
-                        showNotification('Message deleted', 'success');
-                        viewMessageModal?.hide();
-                        setTimeout(() => location.reload(), 800);
-                    } else {
-                        showNotification('Delete failed', 'error');
-                    }
-                } catch (err) {
-                    showNotification('Network error', 'error');
-                }
-            });
+         document.getElementById('deleteFromViewBtn')?.addEventListener('click', async function() {
+
+    const msgId = document.getElementById('view_message_id').value;
+
+    if (!msgId || !confirm('Delete this message?')) return;
+
+    try {
+
+        const res = await fetch(`/admin/delete_message/${msgId}`, {
+            method: 'POST'
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            showNotification('Message deleted', 'success');
+            viewMessageModal?.hide();
+            setTimeout(() => location.reload(), 800);
+        } else {
+            showNotification('Delete failed', 'error');
+        }
+
+    } catch (err) {
+        showNotification('Network error', 'error');
+    }
+
+});
 
             // Delete message directly from table
-            document.querySelectorAll('.delete-message').forEach(btn => {
-                btn.addEventListener('click', async function(e) {
-                    e.stopPropagation();
-                    if (!confirm('Delete this message?')) return;
-                    const msgId = this.dataset.id;
-                    try {
-                        const res = await fetch(`/admin/delete_message/${msgId}`, { method: 'DELETE' });
-                        const data = await res.json();
-                        if (data.success) {
-                            showNotification('Message deleted', 'success');
-                            setTimeout(() => location.reload(), 800);
-                        } else {
-                            showNotification('Delete failed', 'error');
-                        }
-                    } catch (err) {
-                        showNotification('Network error', 'error');
-                    }
-                });
+        document.querySelectorAll('.delete-message').forEach(btn => {
+    btn.addEventListener('click', async function(e) {
+        e.stopPropagation();
+
+        if (!confirm('Delete this message?')) return;
+
+        const msgId = this.dataset.id;
+
+        try {
+
+            const res = await fetch(`/admin/delete_message/${msgId}`, {
+                method: 'POST'
             });
 
+            const data = await res.json();
+
+            if (data.success) {
+                showNotification('Message deleted', 'success');
+                setTimeout(() => location.reload(), 800);
+            } else {
+                showNotification('Delete failed', 'error');
+            }
+
+        } catch (err) {
+            showNotification('Network error', 'error');
+        }
+    });
+});
             // Mark all as read
             document.getElementById('markAllReadBtn')?.addEventListener('click', async function() {
                 try {
