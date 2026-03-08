@@ -8,7 +8,7 @@ gunicorn==22.0.0
 eventlet==0.33.3
 
 # === EXPORT FEATURES ===
-pandas==2.1.4
+pandas==2.2.2
 openpyxl==3.1.2
 
 # === TIMEZONE & ENV ===
@@ -23,3 +23,4 @@ simple-websocket==1.1.0
 
 # === STANDARD LIBRARY (NO PIP NEEDED) ===
 # sqlite3, csv, io, json, functools, datetime, random, os, shutil ✅ Built-in
+
