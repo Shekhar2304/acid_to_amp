@@ -1,4 +1,3 @@
-```python
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, Response
 from flask_socketio import SocketIO, emit
 from flask_bcrypt import Bcrypt
@@ -431,4 +430,4 @@ if __name__ == "__main__":
     socketio.start_background_task(background_sensor_task)
 
     socketio.run(app, host="0.0.0.0", port=5000, debug=True)
-```
+
