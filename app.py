@@ -288,25 +288,42 @@ def admin_delete_user(user_id):
         "success": success
     })
 
-@app.route('/admin/delete_message/<message_id>', methods=['DELETE','POST'])
+@app.route('/admin/delete_message/<message_id>', methods=['POST','DELETE'])
 @admin_required
 def delete_message(message_id):
 
-    success = ContactMessage.delete_message(message_id)
+    try:
+        success = ContactMessage.delete_message(message_id)
 
-    return jsonify({"success": success})
+        return jsonify({
+            "success": success
+        })
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
 # =========================================================
 # ADMIN MESSAGE CRUD
 # =========================================================
 
-@app.route('/admin/message_read/<message_id>', methods=['PUT','POST'])
+@app.route('/admin/message_read/<message_id>', methods=['POST','PUT'])
 @admin_required
 def message_read(message_id):
 
-    success = ContactMessage.mark_as_read(message_id)
+    try:
+        success = ContactMessage.mark_as_read(message_id)
 
-    return jsonify({"success": success})
+        return jsonify({
+            "success": success
+        })
 
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
  
 
 @app.route('/admin/messages/mark_all_read', methods=['POST'])
