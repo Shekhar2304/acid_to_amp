@@ -288,42 +288,28 @@ def admin_delete_user(user_id):
         "success": success
     })
 
-@app.route('/admin/delete_message/<message_id>', methods=['POST', 'DELETE'])
+@app.route('/admin/delete_message/<message_id>', methods=['POST'])
 @admin_required
 def delete_message(message_id):
     try:
         success = ContactMessage.delete_message(message_id)
-
-        return jsonify({
-            "success": success
-        })
-
+        return jsonify({"success": success})
     except Exception as e:
-        print("DELETE MESSAGE ERROR:", e)
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+        print("ERROR:", e)
+        return jsonify({"success": False}), 500
 # =========================================================
 # ADMIN MESSAGE CRUD
 # =========================================================
 
-@app.route('/admin/message_read/<message_id>', methods=['POST', 'PUT'])
+@app.route('/admin/message_read/<message_id>', methods=['POST'])
 @admin_required
 def message_read(message_id):
     try:
         success = ContactMessage.mark_as_read(message_id)
-
-        return jsonify({
-            "success": success
-        })
-
+        return jsonify({"success": success})
     except Exception as e:
-        print("MARK READ ERROR:", e)
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+        print("ERROR:", e)
+        return jsonify({"success": False}), 500
 @app.route('/admin/messages/mark_all_read', methods=['POST'])
 @admin_required
 def mark_all_messages_read():
