@@ -13,10 +13,14 @@ import io
 import json
 import pandas as pd
 import shutil
-from models import ContactMessage  # Keep this if you have a separate ContactMessage model
 
-# Import dashboard blueprint
-from dashboard import dashboard_bp
+# Import dashboard blueprint SAFELY
+try:
+    from dashboard import dashboard_bp
+    HAS_DASHBOARD = True
+except ImportError:
+    HAS_DASHBOARD = False
+    print("⚠️ Dashboard blueprint not found - continuing without it")
 
 load_dotenv()
 
@@ -24,11 +28,11 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or 'your-super-secret-key-change-in-production'
 
 # SQLite configuration
-DATABASE = 'acid_amp.db'
-app.config['DATABASE'] = os.environ.get('DATABASE_PATH') or DATABASE
+DATABASE = os.environ.get('DATABASE_PATH', 'acid_amp.db')
+app.config['DATABASE'] = DATABASE
 
 # Set your timezone
-TIMEZONE = 'Asia/Kolkata'  # For India
+TIMEZONE = 'Asia/Kolkata'
 
 bcrypt = Bcrypt(app)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
@@ -40,62 +44,64 @@ socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 def get_db_connection():
     """Get SQLite database connection with foreign keys enabled"""
     conn = sqlite3.connect(app.config['DATABASE'])
-    conn.row_factory = sqlite3.Row  # Enables column access by name
+    conn.row_factory = sqlite3.Row
     conn.execute('PRAGMA foreign_keys = ON')
     return conn
 
 def init_db():
     """Initialize database with all required tables"""
-    with app.app_context():
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Create users table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT NOT NULL UNIQUE,
-                email TEXT NOT NULL UNIQUE,
-                password_hash TEXT NOT NULL,
-                role TEXT NOT NULL DEFAULT 'user',
-                created_at TEXT NOT NULL,
-                is_active INTEGER DEFAULT 1
-            )
-        ''')
-        
-        # Create unique index on email
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)')
-        
-        # Create sensor_data table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS sensor_data (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                voltage REAL NOT NULL,
-                current REAL NOT NULL,
-                ph REAL NOT NULL,
-                iron REAL NOT NULL,
-                copper REAL NOT NULL,
-                biofilm_status TEXT NOT NULL,
-                power REAL NOT NULL,
-                timestamp TEXT NOT NULL
-            )
-        ''')
-        
-        # Create contacts table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS contacts (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                email TEXT NOT NULL,
-                subject TEXT,
-                message TEXT NOT NULL,
-                status TEXT DEFAULT 'unread',
-                created_at TEXT NOT NULL
-            )
-        ''')
-        
-        conn.commit()
-        conn.close()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Create users table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            email TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            role TEXT NOT NULL DEFAULT 'user',
+            created_at TEXT NOT NULL,
+            is_active INTEGER DEFAULT 1
+        )
+    ''')
+    
+    # Create sensor_data table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS sensor_data (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            voltage REAL NOT NULL,
+            current REAL NOT NULL,
+            ph REAL NOT NULL,
+            iron REAL NOT NULL,
+            copper REAL NOT NULL,
+            biofilm_status TEXT NOT NULL,
+            power REAL NOT NULL,
+            timestamp TEXT NOT NULL
+        )
+    ''')
+    
+    # Create contacts table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS contacts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL,
+            subject TEXT,
+            message TEXT NOT NULL,
+            status TEXT DEFAULT 'unread',
+            created_at TEXT NOT NULL
+        )
+    ''')
+    
+    # Indexes for performance
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_sensor_timestamp ON sensor_data(timestamp)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_contacts_status ON contacts(status)')
+    
+    conn.commit()
+    conn.close()
+    print("✅ Database tables initialized")
 
 # =============================================================================
 # TIMEZONE HELPER FUNCTIONS
@@ -130,11 +136,11 @@ class User:
         conn = get_db_connection()
         cursor = conn.cursor()
         try:
+            password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
             cursor.execute('''
                 INSERT INTO users (username, email, password_hash, role, created_at, is_active)
                 VALUES (?, ?, ?, ?, ?, 1)
-            ''', (username, email, bcrypt.generate_password_hash(password).decode('utf-8'), 
-                  role, get_local_time()))
+            ''', (username, email, password_hash, role, get_local_time()))
             conn.commit()
             return str(cursor.lastrowid)
         finally:
@@ -143,29 +149,31 @@ class User:
     @staticmethod
     def get_user_by_email(email):
         conn = get_db_connection()
-        user = conn.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
-        conn.close()
-        if user:
-            user = dict(user)
-            user['id'] = str(user['id'])
-        return user
+        try:
+            user = conn.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
+            if user:
+                user_dict = dict(user)
+                user_dict['id'] = str(user_dict['id'])
+                return user_dict
+            return None
+        finally:
+            conn.close()
     
     @staticmethod
     def get_all_users():
         conn = get_db_connection()
-        users = conn.execute('''
-            SELECT * FROM users ORDER BY created_at DESC
-        ''').fetchall()
-        conn.close()
-        
-        users_list = []
-        for user in users:
-            user_dict = dict(user)
-            user_dict['_id'] = user_dict.pop('id')
-            if user_dict.get('created_at'):
-                user_dict['created_at_formatted'] = format_local_time(user_dict['created_at'])
-            users_list.append(user_dict)
-        return users_list
+        try:
+            users = conn.execute('SELECT * FROM users ORDER BY created_at DESC').fetchall()
+            users_list = []
+            for user in users:
+                user_dict = dict(user)
+                user_dict['_id'] = str(user_dict.pop('id'))
+                if user_dict.get('created_at'):
+                    user_dict['created_at_formatted'] = format_local_time(user_dict['created_at'])
+                users_list.append(user_dict)
+            return users_list
+        finally:
+            conn.close()
     
     @staticmethod
     def update_user(user_id, updates):
@@ -174,9 +182,7 @@ class User:
         try:
             set_clause = ', '.join([f"{k} = ?" for k in updates.keys()])
             values = list(updates.values()) + [user_id]
-            cursor.execute(f'''
-                UPDATE users SET {set_clause} WHERE id = ?
-            ''', values)
+            cursor.execute(f'UPDATE users SET {set_clause} WHERE id = ?', values)
             conn.commit()
             return cursor.rowcount > 0
         finally:
@@ -203,67 +209,53 @@ class SensorData:
         conn = get_db_connection()
         cursor = conn.cursor()
         try:
-            data = {
-                'voltage': voltage,
-                'current': current,
-                'ph': ph,
-                'iron': iron,
-                'copper': copper,
-                'biofilm_status': biofilm_status,
-                'power': round(voltage * current * 1000, 2),
-                'timestamp': get_local_time()
-            }
+            power = round(voltage * current * 1000, 2)
             cursor.execute('''
                 INSERT INTO sensor_data (voltage, current, ph, iron, copper, biofilm_status, power, timestamp)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (data['voltage'], data['current'], data['ph'], data['iron'], 
-                  data['copper'], data['biofilm_status'], data['power'], data['timestamp']))
+            ''', (voltage, current, ph, iron, copper, biofilm_status, power, get_local_time()))
             conn.commit()
-            data['id'] = cursor.lastrowid
-            return data
+            return cursor.lastrowid
         finally:
             conn.close()
     
     @staticmethod
     def get_recent_data(limit=100):
         conn = get_db_connection()
-        data = conn.execute('''
-            SELECT * FROM sensor_data ORDER BY timestamp DESC LIMIT ?
-        ''', (limit,)).fetchall()
-        conn.close()
-        
-        data_list = []
-        for item in data:
-            item_dict = dict(item)
-            item_dict['_id'] = str(item_dict.pop('id'))
-            if item_dict.get('timestamp'):
-                item_dict['timestamp'] = format_local_time(item_dict['timestamp'])
-            data_list.append(item_dict)
-        return data_list
+        try:
+            data = conn.execute('SELECT * FROM sensor_data ORDER BY timestamp DESC LIMIT ?', (limit,)).fetchall()
+            data_list = []
+            for item in data:
+                item_dict = dict(item)
+                item_dict['_id'] = str(item_dict.pop('id'))
+                if item_dict.get('timestamp'):
+                    item_dict['timestamp'] = format_local_time(item_dict['timestamp'])
+                data_list.append(item_dict)
+            return data_list
+        finally:
+            conn.close()
     
     @staticmethod
     def get_data_for_export(limit=10000):
-        """Get data formatted for export"""
         conn = get_db_connection()
-        data = conn.execute('''
-            SELECT * FROM sensor_data ORDER BY timestamp DESC LIMIT ?
-        ''', (limit,)).fetchall()
-        conn.close()
-        
-        formatted_data = []
-        for item in data:
-            item_dict = dict(item)
-            formatted_data.append({
-                'Timestamp': format_local_time(item_dict.get('timestamp')),
-                'Voltage (V)': item_dict.get('voltage', 0),
-                'Current (mA)': item_dict.get('current', 0),
-                'pH': item_dict.get('ph', 0),
-                'Iron (mg/L)': item_dict.get('iron', 0),
-                'Copper (mg/L)': item_dict.get('copper', 0),
-                'Biofilm': item_dict.get('biofilm_status', 'Unknown'),
-                'Power (mW)': item_dict.get('power', 0)
-            })
-        return formatted_data
+        try:
+            data = conn.execute('SELECT * FROM sensor_data ORDER BY timestamp DESC LIMIT ?', (limit,)).fetchall()
+            formatted_data = []
+            for item in data:
+                item_dict = dict(item)
+                formatted_data.append({
+                    'Timestamp': format_local_time(item_dict.get('timestamp')),
+                    'Voltage (V)': item_dict.get('voltage', 0),
+                    'Current (mA)': item_dict.get('current', 0),
+                    'pH': item_dict.get('ph', 0),
+                    'Iron (mg/L)': item_dict.get('iron', 0),
+                    'Copper (mg/L)': item_dict.get('copper', 0),
+                    'Biofilm': item_dict.get('biofilm_status', 'Unknown'),
+                    'Power (mW)': item_dict.get('power', 0)
+                })
+            return formatted_data
+        finally:
+            conn.close()
     
     @staticmethod
     def clear_all_data():
@@ -295,19 +287,18 @@ class ContactMessage:
     @staticmethod
     def get_all_messages():
         conn = get_db_connection()
-        messages = conn.execute('''
-            SELECT * FROM contacts ORDER BY created_at DESC
-        ''').fetchall()
-        conn.close()
-        
-        messages_list = []
-        for msg in messages:
-            msg_dict = dict(msg)
-            msg_dict['_id'] = str(msg_dict.pop('id'))
-            if msg_dict.get('created_at'):
-                msg_dict['created_at_formatted'] = format_local_time(msg_dict['created_at'])
-            messages_list.append(msg_dict)
-        return messages_list
+        try:
+            messages = conn.execute('SELECT * FROM contacts ORDER BY created_at DESC').fetchall()
+            messages_list = []
+            for msg in messages:
+                msg_dict = dict(msg)
+                msg_dict['_id'] = str(msg_dict.pop('id'))
+                if msg_dict.get('created_at'):
+                    msg_dict['created_at_formatted'] = format_local_time(msg_dict['created_at'])
+                messages_list.append(msg_dict)
+            return messages_list
+        finally:
+            conn.close()
     
     @staticmethod
     def mark_as_read(message_id):
@@ -343,8 +334,22 @@ class ContactMessage:
         finally:
             conn.close()
 
-# Register dashboard blueprint
-app.register_blueprint(dashboard_bp)
+# =============================================================================
+# CRITICAL: INITIALIZE DATABASE ON EVERY STARTUP (Render/Gunicorn fix)
+# =============================================================================
+print("🚀 Initializing Acid-to-Amp Bioelectric System...")
+init_db()
+
+# Auto-create admin user
+admin = User.get_user_by_email('admin@acidtoamp.com')
+if not admin:
+    User.create_user('admin', 'admin@acidtoamp.com', 'admin2026', 'admin')
+    print("✅ Admin created: admin@acidtoamp.com / admin2026")
+
+# Safely register dashboard blueprint
+if HAS_DASHBOARD:
+    app.register_blueprint(dashboard_bp)
+    print("✅ Dashboard blueprint registered")
 
 # =============================================================================
 # DECORATORS
@@ -393,60 +398,36 @@ def terms():
 def technology():
     return render_template('technology.html')
 
+@app.route('/contact', methods=['GET', 'POST'])
+def contact():
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        email = request.form.get('email', '').strip()
+        subject = request.form.get('subject', '').strip()
+        message = request.form.get('message', '').strip()
+        
+        if not all([name, email, message]):
+            flash('Please fill in all required fields.', 'danger')
+            return render_template('contact.html')
+        
+        ContactMessage.add_message(name, email, subject, message)
+        flash('Your message has been sent. Thank you!', 'success')
+        return render_template('contact.html')
+    
+    return render_template('contact.html')
+
 @app.route('/debug/time-diagnostic')
 def time_diagnostic():
-    """Comprehensive time diagnostic"""
     import time
-    
-    # System time
     system_time = datetime.now()
-    
-    # UTC time
     utc_time = datetime.utcnow()
-    
-    # India time
     india_tz = pytz.timezone('Asia/Kolkata')
     india_time = datetime.now(india_tz)
-    
-    # Server timezone info
-    is_dst = time.localtime().tm_isdst
-    
-    # Get environment info
-    tz_env = os.environ.get('TZ', 'Not set')
-    
-    # Sample from database if available
-    db_sample = None
-    try:
-        conn = get_db_connection()
-        sample = conn.execute('SELECT timestamp FROM sensor_data ORDER BY timestamp DESC LIMIT 1').fetchone()
-        conn.close()
-        if sample:
-            ts = sample['timestamp']
-            db_sample = {
-                'raw_timestamp': str(ts),
-                'type': str(type(ts)),
-                'formatted_utc': ts if isinstance(ts, str) else ts.strftime('%Y-%m-%d %H:%M:%S'),
-            }
-            # Try to convert to India time
-            if ts and isinstance(ts, str):
-                try:
-                    parsed_ts = datetime.fromisoformat(ts.replace('Z', '+00:00'))
-                    ts_utc = pytz.UTC.localize(parsed_ts)
-                    ts_india = ts_utc.astimezone(india_tz)
-                    db_sample['formatted_india'] = ts_india.strftime('%Y-%m-%d %H:%M:%S')
-                except:
-                    db_sample['formatted_india'] = 'Parse error'
-    except Exception as e:
-        db_sample = {'error': str(e)}
     
     return jsonify({
         'system_time': system_time.strftime('%Y-%m-%d %H:%M:%S'),
         'utc_time': utc_time.strftime('%Y-%m-%d %H:%M:%S'),
         'india_time': india_time.strftime('%Y-%m-%d %H:%M:%S'),
-        'server_timezone': time.tzname,
-        'is_dst': is_dst,
-        'tz_environment': tz_env,
-        'database_sample': db_sample,
         'timezone_setting': TIMEZONE
     })
 
@@ -457,26 +438,34 @@ def time_diagnostic():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        user = User.get_user_by_email(email)
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
         
+        user = User.get_user_by_email(email)
         if user and User.check_password(user, password):
             session['user_id'] = user['id']
             session['username'] = user['username']
             session['role'] = user['role']
             session['email'] = user['email']
             flash(f'Welcome back, {user["username"]}!', 'success')
-            return redirect(url_for('dashboard.dashboard'))
+            
+            # Redirect to dashboard if exists, otherwise admin
+            if HAS_DASHBOARD:
+                return redirect(url_for('dashboard.dashboard'))
+            return redirect(url_for('admin_panel'))
         flash('Invalid credentials', 'danger')
     return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form['username']
-        email = request.form['email']
-        password = request.form['password']
+        username = request.form.get('username', '').strip()
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
+        
+        if not all([username, email, password]):
+            flash('Please fill all fields.', 'danger')
+            return render_template('register.html')
         
         existing = User.get_user_by_email(email)
         if existing:
@@ -509,9 +498,7 @@ def recent_data():
 @login_required
 def live_stats():
     data = SensorData.get_recent_data(1)
-    if data:
-        return jsonify(data[0])
-    return jsonify({})
+    return jsonify(data[0] if data else {})
 
 # =============================================================================
 # ROUTES - ADMIN PANEL
@@ -522,32 +509,37 @@ def live_stats():
 def admin_panel():
     users = User.get_all_users()
     messages = ContactMessage.get_all_messages()
-    conn = get_db_connection()
     
-    stats = {
-        'users': conn.execute('SELECT COUNT(*) FROM users').fetchone()[0],
-        'readings': conn.execute('SELECT COUNT(*) FROM sensor_data').fetchone()[0],
-        'messages': conn.execute('SELECT COUNT(*) FROM contacts').fetchone()[0],
-        'unread_messages': conn.execute('SELECT COUNT(*) FROM contacts WHERE status = "unread"').fetchone()[0],
-        'active_sessions': random.randint(8, 15),
-        'online_now': random.randint(3, 8)
-    }
-    conn.close()
+    conn = get_db_connection()
+    try:
+        stats = {
+            'users': conn.execute('SELECT COUNT(*) FROM users').fetchone()[0],
+            'readings': conn.execute('SELECT COUNT(*) FROM sensor_data').fetchone()[0],
+            'messages': conn.execute('SELECT COUNT(*) FROM contacts').fetchone()[0],
+            'unread_messages': conn.execute('SELECT COUNT(*) FROM contacts WHERE status = "unread"').fetchone()[0],
+            'active_sessions': random.randint(8, 15),
+            'online_now': random.randint(3, 8)
+        }
+    finally:
+        conn.close()
+    
     return render_template('admin.html', users=users, messages=messages, stats=stats)
 
 @app.route('/admin/users')
 @admin_required
 def admin_users():
-    users = User.get_all_users()
-    return jsonify(users)
+    return jsonify(User.get_all_users())
 
 @app.route('/admin/create_user', methods=['POST'])
 @admin_required
 def create_user():
-    username = request.form['username']
-    email = request.form['email']
+    username = request.form.get('username', '').strip()
+    email = request.form.get('email', '').strip()
     password = request.form.get('password', 'temp123')
     role = request.form.get('role', 'user')
+    
+    if not username or not email:
+        return jsonify({'success': False, 'error': 'Username and email required'}), 400
     
     existing = User.get_user_by_email(email)
     if existing:
@@ -557,15 +549,15 @@ def create_user():
         user_id = User.create_user(username, email, password, role)
         return jsonify({'success': True, 'user_id': user_id})
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 400
+        return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/admin/update_user/<user_id>', methods=['PUT'])
+@app.route('/admin/update_user/<user_id>', methods=['POST'])
 @admin_required
 def update_user(user_id):
     updates = {
-        'username': request.form['username'],
-        'email': request.form['email'],
-        'role': request.form['role']
+        'username': request.form.get('username', ''),
+        'email': request.form.get('email', ''),
+        'role': request.form.get('role', 'user')
     }
     success = User.update_user(user_id, updates)
     return jsonify({'success': success})
@@ -575,7 +567,6 @@ def update_user(user_id):
 def delete_user(user_id):
     if str(session['user_id']) == user_id:
         return jsonify({'error': 'Cannot delete yourself'}), 400
-    
     success = User.delete_user(user_id)
     return jsonify({'success': success})
 
@@ -589,45 +580,28 @@ def clear_data():
 @admin_required
 def admin_stats():
     conn = get_db_connection()
-    stats = {
-        'users': conn.execute('SELECT COUNT(*) FROM users').fetchone()[0],
-        'readings': conn.execute('SELECT COUNT(*) FROM sensor_data').fetchone()[0],
-        'active_sessions': random.randint(8, 15),
-        'online_now': random.randint(3, 8)
-    }
-    conn.close()
+    try:
+        stats = {
+            'users': conn.execute('SELECT COUNT(*) FROM users').fetchone()[0],
+            'readings': conn.execute('SELECT COUNT(*) FROM sensor_data').fetchone()[0],
+            'active_sessions': random.randint(8, 15),
+            'online_now': random.randint(3, 8)
+        }
+    finally:
+        conn.close()
     return jsonify(stats)
 
 # =============================================================================
-# CONTACT ROUTES
+# CONTACT ADMIN ROUTES
 # =============================================================================
 
-@app.route('/contact', methods=['GET', 'POST'])
-def contact():
-    if request.method == 'POST':
-        name = request.form.get('name')
-        email = request.form.get('email')
-        subject = request.form.get('subject')
-        message = request.form.get('message')
-        
-        if not name or not email or not message:
-            flash('Please fill in all required fields.', 'danger')
-            return redirect(url_for('contact'))
-        
-        # Save to database
-        ContactMessage.add_message(name, email, subject, message)
-        flash('Your message has been sent. Thank you!', 'success')
-        return redirect(url_for('contact'))
-    
-    return render_template('contact.html')
-
-@app.route('/admin/message_read/<message_id>', methods=['POST'])
+@app.route('/admin/message_read/<int:message_id>', methods=['POST'])
 @admin_required
 def message_read(message_id):
     success = ContactMessage.mark_as_read(message_id)
     return jsonify({'success': success})
 
-@app.route('/admin/delete_message/<message_id>', methods=['DELETE'])
+@app.route('/admin/delete_message/<int:message_id>', methods=['DELETE'])
 @admin_required
 def delete_message(message_id):
     success = ContactMessage.delete_message(message_id)
@@ -646,7 +620,6 @@ def mark_all_messages_read():
 @app.route('/admin/export_report')
 @admin_required
 def export_report():
-    """Export sensor data in multiple formats"""
     try:
         export_format = request.args.get('format', 'csv').lower()
         sensor_data = SensorData.get_data_for_export(10000)
@@ -660,68 +633,51 @@ def export_report():
             return export_as_json(sensor_data, timestamp)
         else:
             return {"error": "Invalid format"}, 400
-            
     except Exception as e:
         print(f"Export error: {str(e)}")
         return {"error": str(e)}, 500
 
 def export_as_csv(data, timestamp):
-    """Export data as CSV file"""
     try:
         if not data:
             data = [{'Message': 'No data available'}]
         
         output = io.StringIO()
-        if data:
-            fieldnames = data[0].keys()
-            writer = csv.DictWriter(output, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(data)
+        fieldnames = data[0].keys()
+        writer = csv.DictWriter(output, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(data)
         
         filename = f"sensor_export_{timestamp}.csv"
         return Response(
             output.getvalue(),
             mimetype='text/csv',
-            headers={
-                'Content-Disposition': f'attachment; filename={filename}',
-                'Content-Type': 'text/csv; charset=utf-8'
-            }
+            headers={'Content-Disposition': f'attachment; filename={filename}'}
         )
     except Exception as e:
-        print(f"CSV export error: {str(e)}")
         return {"error": str(e)}, 500
 
 def export_as_excel(data, timestamp):
-    """Export data as Excel file"""
     try:
-        from io import BytesIO
-        
         if not data:
             data = [{'Message': 'No data available'}]
         
         df = pd.DataFrame(data)
-        output = BytesIO()
+        output = io.BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
             df.to_excel(writer, sheet_name='Sensor Data', index=False)
+        output.seek(0)
         
         filename = f"sensor_export_{timestamp}.xlsx"
-        output.seek(0)
         return Response(
-            output.read(),
+            output.getvalue(),
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            headers={
-                'Content-Disposition': f'attachment; filename={filename}',
-                'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            }
+            headers={'Content-Disposition': f'attachment; filename={filename}'}
         )
-    except ImportError:
-        return {"error": "Excel export requires pandas and openpyxl. Install with: pip install pandas openpyxl"}, 500
     except Exception as e:
-        print(f"Excel export error: {str(e)}")
-        return {"error": str(e)}, 500
+        return {"error": "Excel export failed"}, 500
 
 def export_as_json(data, timestamp):
-    """Export data as JSON file"""
     try:
         if not data:
             data = [{'Message': 'No data available'}]
@@ -730,19 +686,14 @@ def export_as_json(data, timestamp):
         return Response(
             json.dumps(data, indent=2, default=str),
             mimetype='application/json',
-            headers={
-                'Content-Disposition': f'attachment; filename={filename}',
-                'Content-Type': 'application/json; charset=utf-8'
-            }
+            headers={'Content-Disposition': f'attachment; filename={filename}'}
         )
     except Exception as e:
-        print(f"JSON export error: {str(e)}")
         return {"error": str(e)}, 500
 
 @app.route('/admin/export_options')
 @admin_required
 def export_options():
-    """Show export options page"""
     return render_template('export_options.html')
 
 # =============================================================================
@@ -786,7 +737,6 @@ def background_sensor_task():
                 'timestamp': format_local_time(get_local_time())
             })
             socketio.sleep(10)
-            
         except Exception as e:
             print(f"Background task error: {e}")
             socketio.sleep(10)
@@ -806,28 +756,19 @@ def debug_endpoints():
     return jsonify(endpoints)
 
 # =============================================================================
-# MAIN
+# MAIN (Local development only)
 # =============================================================================
 
 if __name__ == '__main__':
-    # Initialize database
-    init_db()
-    
-    # Auto-create admin if not exists
-    admin = User.get_user_by_email('admin@acidtoamp.com')
-    if not admin:
-        User.create_user('admin', 'admin@acidtoamp.com', 'admin2026', 'admin')
-        print(f"✅ Admin created: admin@acidtoamp.com / admin2026")
-    
-    print("=" * 50)
-    print("🚀 Acid-to-Amp Bioelectric System (SQLite)")
-    print("=" * 50)
+    print("=" * 60)
+    print("🚀 ACID-TO-AMP BIOELECTRIC SYSTEM (Production Ready)")
+    print("=" * 60)
     print(f"📍 Timezone: {TIMEZONE}")
     print(f"🕐 Local time: {format_local_time(get_local_time())}")
     print(f"📊 Database: {app.config['DATABASE']}")
-    print(f"🌐 Server: http://localhost:5000")
+    print(f"🌐 Development server: http://localhost:5000")
     print(f"👤 Admin login: admin@acidtoamp.com / admin2026")
-    print("=" * 50)
+    print("=" * 60)
     
     socketio.start_background_task(target=background_sensor_task)
     socketio.run(app, debug=True, host='0.0.0.0', port=5000, allow_unsafe_werkzeug=True)
