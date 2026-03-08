@@ -1,579 +1,399 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, Response
 from flask_socketio import SocketIO, emit
 from flask_bcrypt import Bcrypt
-from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from datetime import datetime
 import random
 import os
-from dotenv import load_dotenv
 import pytz
 import csv
 import io
 import json
 
-# ==========================================================
-# LOAD ENV
-# ==========================================================
+from config import Config
+from models import db, User, SensorData, ContactMessage
 
-load_dotenv()
+from dashboard import dashboard_bp
 
-# ==========================================================
-# APP CONFIGURATION
-# ==========================================================
+# =========================================================
+# APP INITIALIZATION
+# =========================================================
 
 app = Flask(__name__)
+app.config.from_object(Config)
 
-app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "super-secret-key")
-
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
-    "DATABASE_URL", "sqlite:///acid_amp.db"
-)
-
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_pre_ping": True,
-    "pool_recycle": 300
-}
-
-db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
-socketio = SocketIO(
-    app,
-    cors_allowed_origins="*",
-    async_mode="threading"
-)
+# Initialize SQLAlchemy
+db.init_app(app)
 
-TIMEZONE = "Asia/Kolkata"
+# Register dashboard blueprint
+app.register_blueprint(dashboard_bp)
 
-# ==========================================================
-# DATABASE MODELS
-# ==========================================================
+# =========================================================
+# CREATE TABLES
+# =========================================================
 
-class User(db.Model):
+with app.app_context():
+    db.create_all()
 
-    __tablename__ = "users"
+# =========================================================
+# TIMEZONE SETTINGS
+# =========================================================
 
-    id = db.Column(db.Integer, primary_key=True)
-
-    username = db.Column(db.String(100), nullable=False, unique=True)
-
-    email = db.Column(db.String(150), nullable=False, unique=True, index=True)
-
-    password_hash = db.Column(db.String(200), nullable=False)
-
-    role = db.Column(db.String(20), default="user")
-
-    created_at = db.Column(db.DateTime)
-
-    is_active = db.Column(db.Boolean, default=True)
-
-
-class ContactMessage(db.Model):
-
-    __tablename__ = "contacts"
-
-    id = db.Column(db.Integer, primary_key=True)
-
-    name = db.Column(db.String(150), nullable=False)
-
-    email = db.Column(db.String(150), nullable=False)
-
-    subject = db.Column(db.String(200))
-
-    message = db.Column(db.Text, nullable=False)
-
-    status = db.Column(db.String(20), default="unread")
-
-    created_at = db.Column(db.DateTime)
-
-
-class SensorData(db.Model):
-
-    __tablename__ = "sensor_data"
-
-    id = db.Column(db.Integer, primary_key=True)
-
-    voltage = db.Column(db.Float)
-
-    current = db.Column(db.Float)
-
-    ph = db.Column(db.Float)
-
-    iron = db.Column(db.Float)
-
-    copper = db.Column(db.Float)
-
-    biofilm_status = db.Column(db.String(50))
-
-    power = db.Column(db.Float)
-
-    timestamp = db.Column(db.DateTime, index=True)
-
-# ==========================================================
-# TIMEZONE HELPERS
-# ==========================================================
+TIMEZONE = 'Asia/Kolkata'
 
 def get_local_time():
-
-    utc_now = datetime.utcnow().replace(tzinfo=pytz.UTC)
-
-    return utc_now.astimezone(pytz.timezone(TIMEZONE))
-
+    utc_now = datetime.utcnow()
+    local_tz = pytz.timezone(TIMEZONE)
+    return utc_now.replace(tzinfo=pytz.UTC).astimezone(local_tz)
 
 def format_local_time(dt):
-
-    if not dt:
-        return "N/A"
-
+    if dt is None:
+        return 'N/A'
     if isinstance(dt, str):
         return dt
-
-    return dt.astimezone(
-        pytz.timezone(TIMEZONE)
-    ).strftime("%Y-%m-%d %H:%M:%S")
-
-# ==========================================================
-# DATABASE INITIALIZATION
-# ==========================================================
-
-def init_db():
-
-    with app.app_context():
-
-        db.create_all()
-
-        admin = User.query.filter_by(
-            email="admin@acidtoamp.com"
-        ).first()
-
-        if not admin:
-
-            admin = User(
-                username="admin",
-                email="admin@acidtoamp.com",
-                password_hash=generate_password_hash("admin2026"),
-                role="admin",
-                created_at=get_local_time()
-            )
-
-            db.session.add(admin)
-            db.session.commit()
-
-            print("✅ Admin Created")
-            print("admin@acidtoamp.com / admin2026")
-
-# ==========================================================
-# USER CRUD
-# ==========================================================
-
-def create_user(username, email, password, role="user"):
-
-    if User.query.filter_by(email=email).first():
-        return None
-
-    user = User(
-        username=username,
-        email=email,
-        password_hash=generate_password_hash(password),
-        role=role,
-        created_at=get_local_time()
-    )
-
-    db.session.add(user)
-    db.session.commit()
-
-    return str(user.id)
-
-
-def get_user_by_email(email):
-
-    user = User.query.filter_by(email=email).first()
-
-    if user:
-
-        return {
-            "id": str(user.id),
-            "username": user.username,
-            "email": user.email,
-            "password_hash": user.password_hash,
-            "role": user.role
-        }
-
-    return None
-
-
-def get_all_users():
-
-    users = User.query.order_by(
-        User.created_at.desc()
-    ).all()
-
-    return [
-        {
-            "_id": str(u.id),
-            "username": u.username,
-            "email": u.email,
-            "role": u.role,
-            "created_at_formatted": format_local_time(u.created_at)
-        }
-        for u in users
-    ]
-
-
-def update_user(user_id, updates):
-
-    user = User.query.get(int(user_id))
-
-    if not user:
-        return False
-
-    for key, value in updates.items():
-
-        if key == "password" and value:
-            user.password_hash = generate_password_hash(value)
-
-        elif key != "password_hash":
-            setattr(user, key, value)
-
-    db.session.commit()
-
-    return True
-
-
-def delete_user(user_id):
-
-    user = User.query.get(int(user_id))
-
-    if not user:
-        return False
-
-    db.session.delete(user)
-
-    db.session.commit()
-
-    return True
-
-
-def check_password(user_dict, password):
-
-    return check_password_hash(
-        user_dict["password_hash"],
-        password
-    )
-
-# ==========================================================
-# MESSAGE CRUD
-# ==========================================================
-
-def add_message(name, email, subject, message):
-
-    msg = ContactMessage(
-        name=name,
-        email=email,
-        subject=subject,
-        message=message,
-        created_at=get_local_time()
-    )
-
-    db.session.add(msg)
-    db.session.commit()
-
-    return str(msg.id)
-
-
-def get_all_messages():
-
-    msgs = ContactMessage.query.order_by(
-        ContactMessage.created_at.desc()
-    ).all()
-
-    return [
-        {
-            "_id": str(m.id),
-            "name": m.name,
-            "email": m.email,
-            "subject": m.subject,
-            "message": m.message,
-            "status": m.status,
-            "timestamp_formatted": format_local_time(m.created_at)
-        }
-        for m in msgs
-    ]
-
-
-def mark_as_read(message_id):
-
-    msg = ContactMessage.query.get(int(message_id))
-
-    if not msg:
-        return False
-
-    msg.status = "read"
-
-    db.session.commit()
-
-    return True
-
-
-def delete_message(message_id):
-
-    msg = ContactMessage.query.get(int(message_id))
-
-    if not msg:
-        return False
-
-    db.session.delete(msg)
-
-    db.session.commit()
-
-    return True
-
-# ==========================================================
-# SENSOR CRUD
-# ==========================================================
-
-def add_reading(voltage, current, ph, iron, copper, biofilm_status):
-
-    data = SensorData(
-        voltage=voltage,
-        current=current,
-        ph=ph,
-        iron=iron,
-        copper=copper,
-        biofilm_status=biofilm_status,
-        power=round(voltage * current * 1000, 2),
-        timestamp=get_local_time()
-    )
-
-    db.session.add(data)
-    db.session.commit()
-
-
-def get_recent_data(limit=100):
-
-    data = SensorData.query.order_by(
-        SensorData.timestamp.desc()
-    ).limit(limit).all()
-
-    return [
-        {
-            "_id": str(d.id),
-            "voltage": d.voltage,
-            "current": d.current,
-            "ph": d.ph,
-            "iron": d.iron,
-            "copper": d.copper,
-            "biofilm_status": d.biofilm_status,
-            "power": d.power,
-            "timestamp": format_local_time(d.timestamp)
-        }
-        for d in data
-    ]
-
-
-def clear_all_data():
-
-    count = SensorData.query.count()
-
-    SensorData.query.delete()
-
-    db.session.commit()
-
-    return count
-
-# ==========================================================
-# EXPORT FUNCTIONS
-# ==========================================================
-
-def export_csv(data):
-
-    output = io.StringIO()
-
-    writer = csv.DictWriter(
-        output,
-        fieldnames=data[0].keys()
-    )
-
-    writer.writeheader()
-
-    writer.writerows(data)
-
-    return output.getvalue()
-
-
-# ==========================================================
+    local_tz = pytz.timezone(TIMEZONE)
+    if dt.tzinfo is None:
+        dt = pytz.UTC.localize(dt)
+    local_dt = dt.astimezone(local_tz)
+    return local_dt.strftime('%Y-%m-%d %H:%M:%S')
+
+# =========================================================
 # DECORATORS
-# ==========================================================
+# =========================================================
 
 def login_required(f):
-
     @wraps(f)
-    def decorated(*args, **kwargs):
-
-        if "user_id" not in session:
-
-            flash("Please login first", "warning")
-
-            return redirect(url_for("login"))
-
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Please log in first.', 'warning')
+            return redirect(url_for('login'))
         return f(*args, **kwargs)
-
-    return decorated
+    return decorated_function
 
 
 def admin_required(f):
-
     @wraps(f)
-    def decorated(*args, **kwargs):
-
-        if "user_id" not in session or session.get("role") != "admin":
-
-            flash("Admin access required", "danger")
-
-            return redirect(url_for("login"))
-
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session or session.get('role') != 'admin':
+            flash('Admin access required.', 'danger')
+            return redirect(url_for('login'))
         return f(*args, **kwargs)
+    return decorated_function
 
-    return decorated
+# =========================================================
+# PUBLIC ROUTES
+# =========================================================
 
-# ==========================================================
-# ROUTES
-# ==========================================================
-
-@app.route("/")
+@app.route('/')
 def index():
-    return render_template("index.html")
+    return render_template('index.html')
 
 
-@app.route("/login", methods=["GET", "POST"])
+@app.route('/technology')
+def technology():
+    return render_template('technology.html')
+
+
+@app.route('/privacy')
+def privacy():
+    return render_template('legal/privacy.html')
+
+
+@app.route('/terms')
+def terms():
+    return render_template('legal/terms.html')
+
+# =========================================================
+# AUTH ROUTES
+# =========================================================
+
+@app.route('/login', methods=['GET','POST'])
 def login():
 
-    if request.method == "POST":
+    if request.method == 'POST':
 
-        email = request.form.get("email")
+        email = request.form['email']
+        password = request.form['password']
 
-        password = request.form.get("password")
+        user = User.get_user_by_email(email)
 
-        user = get_user_by_email(email)
+        if user and User.check_password(user, password):
 
-        if user and check_password(user, password):
+            session['user_id'] = user['id']
+            session['username'] = user['username']
+            session['role'] = user['role']
 
-            session["user_id"] = user["id"]
+            flash(f"Welcome back {user['username']}", "success")
+            return redirect(url_for('dashboard.dashboard'))
 
-            session["username"] = user["username"]
+        flash("Invalid credentials", "danger")
 
-            session["role"] = user["role"]
-
-            flash("Login Successful", "success")
-
-            return redirect(url_for("index"))
-
-        flash("Invalid Credentials", "danger")
-
-    return render_template("login.html")
+    return render_template('login.html')
 
 
-@app.route("/logout")
+@app.route('/register', methods=['GET','POST'])
+def register():
+
+    if request.method == 'POST':
+
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+
+        existing = User.get_user_by_email(email)
+
+        if existing:
+            flash("Email already exists", "danger")
+            return render_template('register.html')
+
+        User.create_user(username,email,password)
+
+        flash("Registration successful", "success")
+        return redirect(url_for('login'))
+
+    return render_template('register.html')
+
+
+@app.route('/logout')
+@login_required
 def logout():
 
     session.clear()
+    flash("Logged out successfully","info")
+    return redirect(url_for('index'))
 
-    flash("Logged out successfully")
+# =========================================================
+# CONTACT
+# =========================================================
 
-    return redirect(url_for("index"))
+@app.route('/contact', methods=['GET','POST'])
+def contact():
 
-# ==========================================================
+    if request.method == 'POST':
+
+        name = request.form.get('name')
+        email = request.form.get('email')
+        subject = request.form.get('subject')
+        message = request.form.get('message')
+
+        if not name or not email or not message:
+            flash("Please fill required fields","danger")
+            return redirect(url_for('contact'))
+
+        ContactMessage.add_message(name,email,subject,message)
+
+        flash("Message sent successfully","success")
+        return redirect(url_for('contact'))
+
+    return render_template('contact.html')
+
+# =========================================================
 # ADMIN PANEL
-# ==========================================================
+# =========================================================
 
-@app.route("/admin")
+@app.route('/admin')
 @admin_required
 def admin_panel():
 
-    users = get_all_users()
-
-    messages = get_all_messages()
+    users = User.get_all_users()
+    messages = ContactMessage.get_all_messages()
 
     stats = {
         "users": User.query.count(),
         "readings": SensorData.query.count(),
-        "messages": ContactMessage.query.count()
+        "messages": ContactMessage.query.count(),
+        "unread_messages": ContactMessage.query.filter_by(status='unread').count(),
+        "active_sessions": random.randint(8,15),
+        "online_now": random.randint(3,8)
     }
 
-    return render_template(
-        "admin.html",
-        users=users,
-        messages=messages,
-        stats=stats
+    return render_template("admin.html", users=users, messages=messages, stats=stats)
+
+
+@app.route('/admin/clear_data', methods=['POST'])
+@admin_required
+def clear_data():
+
+    deleted = SensorData.clear_all_data()
+
+    return jsonify({
+        "success":True,
+        "cleared":deleted
+    })
+
+# =========================================================
+# API ENDPOINTS
+# =========================================================
+
+@app.route('/api/recent-data')
+@login_required
+def recent_data():
+
+    data = SensorData.get_recent_data(100)
+
+    return jsonify(data)
+
+
+@app.route('/api/live-stats')
+@login_required
+def live_stats():
+
+    data = SensorData.get_recent_data(1)
+
+    if data:
+        return jsonify(data[0])
+
+    return jsonify({})
+
+# =========================================================
+# EXPORT SYSTEM
+# =========================================================
+
+@app.route('/admin/export_report')
+@admin_required
+def export_report():
+
+    export_format = request.args.get("format","csv")
+
+    data = SensorData.get_data_for_export(10000)
+
+    timestamp = get_local_time().strftime('%Y%m%d_%H%M%S')
+
+    if export_format == "csv":
+        return export_csv(data,timestamp)
+
+    if export_format == "json":
+        return export_json(data,timestamp)
+
+    if export_format == "excel":
+        return export_excel(data,timestamp)
+
+
+def export_csv(data,timestamp):
+
+    output = io.StringIO()
+
+    writer = csv.DictWriter(output, fieldnames=data[0].keys())
+
+    writer.writeheader()
+    writer.writerows(data)
+
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={
+            "Content-Disposition":f"attachment; filename=sensor_export_{timestamp}.csv"
+        }
     )
 
-# ==========================================================
-# SOCKET SENSOR SIMULATION
-# ==========================================================
+
+def export_json(data,timestamp):
+
+    return Response(
+        json.dumps(data,indent=2),
+        mimetype="application/json",
+        headers={
+            "Content-Disposition":f"attachment; filename=sensor_export_{timestamp}.json"
+        }
+    )
+
+
+def export_excel(data,timestamp):
+
+    import pandas as pd
+    from io import BytesIO
+
+    df = pd.DataFrame(data)
+
+    output = BytesIO()
+
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer,index=False)
+
+    return Response(
+        output.getvalue(),
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition":f"attachment; filename=sensor_export_{timestamp}.xlsx"
+        }
+    )
+
+# =========================================================
+# SOCKET.IO
+# =========================================================
+
+@socketio.on("connect")
+def handle_connect():
+    emit("status",{"message":"Connected to Acid-to-Amp"})
+
+
+@socketio.on("disconnect")
+def handle_disconnect():
+    print("Client disconnected")
+
+# =========================================================
+# BACKGROUND SENSOR SIMULATION
+# =========================================================
 
 def background_sensor_task():
 
     while True:
 
-        voltage = round(random.uniform(0.45, 0.55), 3)
+        voltage = round(random.uniform(0.45,0.55),3)
+        current = round(random.uniform(1.9,2.4),2)
+        ph = round(random.uniform(4.9,5.5),2)
+        iron = round(random.uniform(22,38),1)
+        copper = round(random.uniform(8,16),1)
 
-        current = round(random.uniform(1.9, 2.4), 2)
+        biofilm = random.choice(["Active","Growing","Stable","Peak"])
 
-        ph = round(random.uniform(4.9, 5.5), 2)
+        SensorData.add_reading(voltage,current,ph,iron,copper,biofilm)
 
-        iron = round(random.uniform(22, 38), 1)
-
-        copper = round(random.uniform(8, 16), 1)
-
-        biofilm = random.choice(["Active", "Growing", "Stable", "Peak"])
-
-        add_reading(voltage, current, ph, iron, copper, biofilm)
-
-        socketio.emit("sensor_update", {
-            "voltage": voltage,
-            "current": current,
-            "ph": ph,
-            "iron": iron,
-            "copper": copper,
-            "biofilm": biofilm,
-            "power": round(voltage * current * 1000, 2),
-            "timestamp": format_local_time(get_local_time())
+        socketio.emit("sensor_update",{
+            "voltage":voltage,
+            "current":current,
+            "ph":ph,
+            "iron":iron,
+            "copper":copper,
+            "biofilm":biofilm,
+            "power":round(voltage*current*1000,2),
+            "timestamp":format_local_time(get_local_time())
         })
 
         socketio.sleep(10)
 
-# ==========================================================
-# INITIALIZATION
-# ==========================================================
+# =========================================================
+# AUTO CREATE ADMIN
+# =========================================================
 
-def init_app():
+with app.app_context():
 
-    init_db()
+    admin = User.get_user_by_email("admin@acidtoamp.com")
 
-    socketio.start_background_task(
-        background_sensor_task
-    )
+    if not admin:
+        User.create_user(
+            "admin",
+            "admin@acidtoamp.com",
+            "admin2026",
+            "admin"
+        )
 
-    print("🚀 Acid-to-Amp System Ready")
+        print("Default admin created")
 
-
-init_app()
-
-# ==========================================================
+# =========================================================
 # MAIN
-# ==========================================================
+# =========================================================
 
 if __name__ == "__main__":
 
-    port = int(os.environ.get("PORT", 5000))
+    socketio.start_background_task(background_sensor_task)
 
     socketio.run(
         app,
         host="0.0.0.0",
-        port=port,
-        debug=False
+        port=5000,
+        debug=True
     )
