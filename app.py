@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, Response
 from flask_socketio import SocketIO, emit
 from flask_bcrypt import Bcrypt
-from models import db, User, SensorData, ContactMessage
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from datetime import datetime
 import random
@@ -13,11 +14,11 @@ import io
 import json
 import pandas as pd
 
-# Import dashboard blueprint (if exists)
+# Disable dashboard blueprint import errors
 try:
     from dashboard import dashboard_bp
     HAS_DASHBOARD = True
-except ImportError:
+except:
     HAS_DASHBOARD = False
 
 load_dotenv()
@@ -26,17 +27,254 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or 'your-super-secret-key-change-in-production'
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or 'sqlite:///acid_amp.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    "pool_pre_ping": True,
+    "pool_recycle": 300,
+}
 
 # Initialize extensions
+db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
-db.init_app(app)
-
-# Register dashboard blueprint if available
-if HAS_DASHBOARD:
-    app.register_blueprint(dashboard_bp)
 
 TIMEZONE = 'Asia/Kolkata'
+
+# =============================================================================
+# TIMEZONE HELPER FUNCTIONS (matches models.py)
+# =============================================================================
+def get_local_time():
+    """Get current time in local timezone"""
+    utc_now = datetime.utcnow()
+    local_tz = pytz.timezone(TIMEZONE)
+    local_time = utc_now.replace(tzinfo=pytz.UTC).astimezone(local_tz)
+    return local_time
+
+def format_local_time(dt):
+    """Format datetime to local timezone string"""
+    if dt is None:
+        return 'N/A'
+    if isinstance(dt, str):
+        return dt
+    local_tz = pytz.timezone(TIMEZONE)
+    if dt.tzinfo is None:
+        dt = pytz.UTC.localize(dt)
+    local_dt = dt.astimezone(local_tz)
+    return local_dt.strftime('%Y-%m-%d %H:%M:%S')
+
+# =============================================================================
+# SQLAlchemy MODELS (complete replacement for MongoDB models)
+# =============================================================================
+class User(db.Model):
+    __tablename__ = 'users'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), nullable=False, unique=True)
+    email = db.Column(db.String(150), nullable=False, unique=True, index=True)
+    password_hash = db.Column(db.String(200), nullable=False)
+    role = db.Column(db.String(20), default='user')
+    created_at = db.Column(db.DateTime, default=get_local_time)
+    is_active = db.Column(db.Boolean, default=True)
+
+    @staticmethod
+    def create_user(username, email, password, role='user'):
+        user = User(
+            username=username,
+            email=email,
+            password_hash=generate_password_hash(password),
+            role=role,
+            created_at=get_local_time()
+        )
+        db.session.add(user)
+        db.session.commit()
+        return str(user.id)
+
+    @staticmethod
+    def get_user_by_email(email):
+        user = User.query.filter_by(email=email).first()
+        if user:
+            return {
+                'id': str(user.id),
+                'username': user.username,
+                'email': user.email,
+                'password_hash': user.password_hash,
+                'role': user.role,
+                'created_at': user.created_at
+            }
+        return None
+
+    @staticmethod
+    def get_all_users():
+        users = User.query.order_by(User.created_at.desc()).all()
+        result = []
+        for u in users:
+            result.append({
+                '_id': str(u.id),
+                'username': u.username,
+                'email': u.email,
+                'role': u.role,
+                'created_at_formatted': format_local_time(u.created_at)
+            })
+        return result
+
+    @staticmethod
+    def update_user(user_id, updates):
+        user = User.query.get(int(user_id))
+        if not user:
+            return False
+        for key, value in updates.items():
+            if key != 'password_hash':
+                setattr(user, key, value)
+        db.session.commit()
+        return True
+
+    @staticmethod
+    def delete_user(user_id):
+        user = User.query.get(int(user_id))
+        if not user:
+            return False
+        db.session.delete(user)
+        db.session.commit()
+        return True
+
+    @staticmethod
+    def check_password(user_dict, password):
+        return check_password_hash(user_dict['password_hash'], password)
+
+class ContactMessage(db.Model):
+    __tablename__ = 'contacts'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150), nullable=False)
+    email = db.Column(db.String(150), nullable=False)
+    subject = db.Column(db.String(200))
+    message = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(20), default='unread')
+    created_at = db.Column(db.DateTime, default=get_local_time)
+
+    @staticmethod
+    def add_message(name, email, subject, message):
+        msg = ContactMessage(
+            name=name,
+            email=email,
+            subject=subject,
+            message=message,
+            created_at=get_local_time()
+        )
+        db.session.add(msg)
+        db.session.commit()
+        return msg.id
+
+    @staticmethod
+    def get_all_messages():
+        msgs = ContactMessage.query.order_by(ContactMessage.created_at.desc()).all()
+        result = []
+        for m in msgs:
+            result.append({
+                '_id': str(m.id),
+                'name': m.name,
+                'email': m.email,
+                'subject': m.subject,
+                'message': m.message,
+                'status': m.status,
+                'timestamp_formatted': format_local_time(m.created_at)
+            })
+        return result
+
+    @staticmethod
+    def mark_as_read(message_id):
+        msg = ContactMessage.query.get(int(message_id))
+        if not msg:
+            return False
+        msg.status = 'read'
+        db.session.commit()
+        return True
+
+    @staticmethod
+    def delete_message(message_id):
+        msg = ContactMessage.query.get(int(message_id))
+        if not msg:
+            return False
+        db.session.delete(msg)
+        db.session.commit()
+        return True
+
+    @staticmethod
+    def mark_all_read():
+        count = ContactMessage.query.filter_by(status='unread').update({'status': 'read'})
+        db.session.commit()
+        return count
+
+class SensorData(db.Model):
+    __tablename__ = 'sensor_data'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    voltage = db.Column(db.Float, nullable=False)
+    current = db.Column(db.Float, nullable=False)
+    ph = db.Column(db.Float, nullable=False)
+    iron = db.Column(db.Float, nullable=False)
+    copper = db.Column(db.Float, nullable=False)
+    biofilm_status = db.Column(db.String(50), nullable=False)
+    power = db.Column(db.Float)
+    timestamp = db.Column(db.DateTime, default=get_local_time, index=True)
+
+    @staticmethod
+    def add_reading(voltage, current, ph, iron, copper, biofilm_status):
+        power = round(voltage * current * 1000, 2)
+        data = SensorData(
+            voltage=voltage,
+            current=current,
+            ph=ph,
+            iron=iron,
+            copper=copper,
+            biofilm_status=biofilm_status,
+            power=power,
+            timestamp=get_local_time()
+        )
+        db.session.add(data)
+        db.session.commit()
+        return data.id
+
+    @staticmethod
+    def get_recent_data(limit=100):
+        data = SensorData.query.order_by(SensorData.timestamp.desc()).limit(limit).all()
+        result = []
+        for item in data:
+            result.append({
+                '_id': str(item.id),
+                'voltage': item.voltage,
+                'current': item.current,
+                'ph': item.ph,
+                'iron': item.iron,
+                'copper': item.copper,
+                'biofilm_status': item.biofilm_status,
+                'power': item.power,
+                'timestamp': format_local_time(item.timestamp)
+            })
+        return result
+
+    @staticmethod
+    def get_data_for_export(limit=10000):
+        data = SensorData.query.order_by(SensorData.timestamp.desc()).limit(limit).all()
+        result = []
+        for item in data:
+            result.append({
+                'Timestamp': format_local_time(item.timestamp),
+                'Voltage (V)': item.voltage,
+                'Current (mA)': item.current,
+                'pH': item.ph,
+                'Iron (mg/L)': item.iron,
+                'Copper (mg/L)': item.copper,
+                'Biofilm': item.biofilm_status,
+                'Power (mW)': item.power
+            })
+        return result
+
+    @staticmethod
+    def clear_all_data():
+        count = SensorData.query.count()
+        SensorData.query.delete()
+        db.session.commit()
+        return count
 
 # =============================================================================
 # DECORATORS
@@ -98,9 +336,7 @@ def contact():
 
 @app.route('/debug/time-diagnostic')
 def time_diagnostic():
-    """Comprehensive time diagnostic"""
     import time
-    
     system_time = datetime.now()
     utc_time = datetime.utcnow()
     india_tz = pytz.timezone('Asia/Kolkata')
@@ -217,11 +453,8 @@ def create_user():
     if existing:
         return jsonify({'success': False, 'error': 'Email already exists'}), 400
     
-    try:
-        user_id = User.create_user(username, email, password, role)
-        return jsonify({'success': True, 'user_id': user_id})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 400
+    user_id = User.create_user(username, email, password, role)
+    return jsonify({'success': True, 'user_id': user_id})
 
 @app.route('/admin/update_user/<user_id>', methods=['POST'])
 @admin_required
@@ -239,7 +472,6 @@ def update_user(user_id):
 def delete_user(user_id):
     if str(session['user_id']) == user_id:
         return jsonify({'error': 'Cannot delete yourself'}), 400
-    
     success = User.delete_user(user_id)
     return jsonify({'success': success})
 
@@ -285,11 +517,10 @@ def mark_all_messages_read():
 @app.route('/admin/export_report')
 @admin_required
 def export_report():
-    """Export sensor data in multiple formats"""
     try:
         export_format = request.args.get('format', 'csv').lower()
         sensor_data = SensorData.get_data_for_export(10000)
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        timestamp = get_local_time().strftime('%Y%m%d_%H%M%S')
         
         if export_format == 'csv':
             return export_as_csv(sensor_data, timestamp)
@@ -305,17 +536,15 @@ def export_report():
         return {"error": str(e)}, 500
 
 def export_as_csv(data, timestamp):
-    """Export data as CSV file"""
     try:
         if not data:
             data = [{'Message': 'No data available'}]
         
         output = io.StringIO()
-        if data:
-            fieldnames = data[0].keys()
-            writer = csv.DictWriter(output, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(data)
+        fieldnames = data[0].keys()
+        writer = csv.DictWriter(output, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(data)
         
         filename = f"sensor_export_{timestamp}.csv"
         return Response(
@@ -331,7 +560,6 @@ def export_as_csv(data, timestamp):
         return {"error": str(e)}, 500
 
 def export_as_excel(data, timestamp):
-    """Export data as Excel file"""
     try:
         if not data:
             data = [{'Message': 'No data available'}]
@@ -351,14 +579,11 @@ def export_as_excel(data, timestamp):
                 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             }
         )
-    except ImportError:
-        return {"error": "Excel export requires pandas and openpyxl"}, 500
     except Exception as e:
         print(f"Excel export error: {str(e)}")
         return {"error": str(e)}, 500
 
 def export_as_json(data, timestamp):
-    """Export data as JSON file"""
     try:
         if not data:
             data = [{'Message': 'No data available'}]
@@ -379,7 +604,6 @@ def export_as_json(data, timestamp):
 @app.route('/admin/export_options')
 @admin_required
 def export_options():
-    """Show export options page"""
     return render_template('export_options.html')
 
 # =============================================================================
@@ -398,7 +622,6 @@ def handle_disconnect():
 # BACKGROUND TASK
 # =============================================================================
 def background_sensor_task():
-    """Simulate sensor readings and broadcast via socket.io"""
     while True:
         try:
             voltage = round(random.uniform(0.45, 0.55), 3)
@@ -418,7 +641,7 @@ def background_sensor_task():
                 'copper': copper,
                 'biofilm': biofilm,
                 'power': round(voltage * current * 1000, 2),
-                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                'timestamp': format_local_time(get_local_time())
             })
             socketio.sleep(10)
             
@@ -451,27 +674,21 @@ if __name__ == '__main__':
         admin = User.get_user_by_email('admin@acidtoamp.com')
         if not admin:
             User.create_user('admin', 'admin@acidtoamp.com', 'admin2026', 'admin')
-            print(f"✅ Admin created: admin@acidtoamp.com / admin2026")
+            print("✅ Admin created: admin@acidtoamp.com / admin2026")
     
     print("=" * 60)
-    print("🔋 ACID-TO-AMP BIOELECTRIC SYSTEM - RAILWAY READY")
+    print("🔋 ACID-TO-AMP BIOELECTRIC SYSTEM")
     print("=" * 60)
     print(f"🌐 Timezone: {TIMEZONE}")
-    print(f"🕐 Local time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"🕐 Local time: {format_local_time(get_local_time())}")
     print(f"💾 Database: {app.config['SQLALCHEMY_DATABASE_URI']}")
     print(f"🌐 PORT: {os.environ.get('PORT', 5000)}")
-    print(f"👤 Admin login: admin@acidtoamp.com / admin2026")
+    print(f"👤 Admin: admin@acidtoamp.com / admin2026")
     print("=" * 60)
     
-    # 🚀 RAILWAY COMPATIBLE: Uses $PORT (defaults to 8080 on Railway)
+    # Railway PORT detection
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
     
     socketio.start_background_task(target=background_sensor_task)
-    socketio.run(
-        app, 
-        debug=debug, 
-        host='0.0.0.0', 
-        port=port,
-        allow_unsafe_werkzeug=False
-    )
+    socketio.run(app, debug=debug, host='0.0.0.0', port=port, allow_unsafe_werkzeug=False)
