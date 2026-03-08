@@ -271,6 +271,22 @@ def admin_update_user(user_id):
     success = User.update_user(user_id, updates)
 
     return jsonify({"success": success})
+@app.route('/admin/delete_user/<user_id>', methods=['POST','DELETE'])
+@admin_required
+def admin_delete_user(user_id):
+
+    # Prevent admin deleting themselves
+    if str(session['user_id']) == user_id:
+        return jsonify({
+            "success": False,
+            "error": "Cannot delete yourself"
+        }), 400
+
+    success = User.delete_user(user_id)
+
+    return jsonify({
+        "success": success
+    })
 
 @app.route('/admin/delete_message/<message_id>', methods=['DELETE','POST'])
 @admin_required
