@@ -1,26 +1,13 @@
-# === CORE FLASK ===
 Flask==3.0.3
 Flask-SocketIO==5.3.6
 Flask-Bcrypt==1.0.1
+Flask-SQLAlchemy==3.1.1
 
-# === PRODUCTION SERVER ===
 gunicorn==22.0.0
 eventlet==0.33.3
 
-# === EXPORT FEATURES ===
 pandas==2.2.2
 openpyxl==3.1.2
 
-# === TIMEZONE & ENV ===
 python-dotenv==1.0.1
 pytz==2024.1
-
-# === SOCKETIO ENGINE ===
-python-socketio==5.16.1
-python-engineio==4.13.1
-bidict==0.23.1
-simple-websocket==1.1.0
-
-# === STANDARD LIBRARY (NO PIP NEEDED) ===
-# sqlite3, csv, io, json, functools, datetime, random, os, shutil ✅ Built-in
-
