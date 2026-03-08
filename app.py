@@ -687,7 +687,7 @@ if __name__ == '__main__':
     print("=" * 60)
     
     # Railway PORT detection
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 8080))
     debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
     
     socketio.start_background_task(target=background_sensor_task)
