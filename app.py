@@ -256,36 +256,34 @@ def admin_create_user():
     })
 
 
-@app.route('/admin/update_user/<user_id>', methods=['POST'])
+@app.route('/admin/update_user/<user_id>', methods=['PUT','POST'])
 @admin_required
 def admin_update_user(user_id):
 
+    data = request.form if request.form else request.json
+
     updates = {
-        "username": request.form.get("username"),
-        "email": request.form.get("email"),
-        "role": request.form.get("role")
+        "username": data.get("username"),
+        "email": data.get("email"),
+        "role": data.get("role")
     }
 
     success = User.update_user(user_id, updates)
 
     return jsonify({"success": success})
 
-
-@app.route('/admin/delete_user/<user_id>', methods=['POST'])
+@app.route('/admin/delete_message/<message_id>', methods=['DELETE','POST'])
 @admin_required
-def admin_delete_user(user_id):
+def delete_message(message_id):
 
-    if str(session["user_id"]) == user_id:
-        return jsonify({"error": "Cannot delete yourself"}), 400
-
-    success = User.delete_user(user_id)
+    success = ContactMessage.delete_message(message_id)
 
     return jsonify({"success": success})
 # =========================================================
 # ADMIN MESSAGE CRUD
 # =========================================================
 
-@app.route('/admin/message_read/<message_id>', methods=['POST'])
+@app.route('/admin/message_read/<message_id>', methods=['PUT','POST'])
 @admin_required
 def message_read(message_id):
 
@@ -293,15 +291,7 @@ def message_read(message_id):
 
     return jsonify({"success": success})
 
-
-@app.route('/admin/delete_message/<message_id>', methods=['POST'])
-@admin_required
-def delete_message(message_id):
-
-    success = ContactMessage.delete_message(message_id)
-
-    return jsonify({"success": success})
-
+ 
 
 @app.route('/admin/messages/mark_all_read', methods=['POST'])
 @admin_required
